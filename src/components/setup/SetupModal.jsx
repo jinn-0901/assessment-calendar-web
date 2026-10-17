@@ -13,10 +13,41 @@ export default function SetupModal({ schools, saving, onSubmit, initialTab }) {
   const [classSchoolId, setClassSchoolId] = useState(String(schools[0]?.id || ""));
   const [classGrade, setClassGrade] = useState("");
   const [classNumber, setClassNumber] = useState("");
+  const [neisGrades, setNeisGrades] = useState([]);
+  const [neisClasses, setNeisClasses] = useState([]);
+  const [classLookupLoading, setClassLookupLoading] = useState(false);
 
   useEffect(() => {
     if (!classSchoolId && schools.length) setClassSchoolId(String(schools[0].id));
   }, [schools, classSchoolId]);
+
+  useEffect(() => {
+    let active = true;
+    setNeisGrades([]);
+    setNeisClasses([]);
+    setClassGrade("");
+    setClassNumber("");
+    if (!classSchoolId) return () => { active = false; };
+    setClassLookupLoading(true);
+    api("/api/neis/classes?schoolId=" + encodeURIComponent(classSchoolId))
+      .then(data => { if (active) setNeisGrades(data.grades || []); })
+      .catch(error => { if (active) setSearchError(error.message); })
+      .finally(() => { if (active) setClassLookupLoading(false); });
+    return () => { active = false; };
+  }, [classSchoolId]);
+
+  useEffect(() => {
+    let active = true;
+    setNeisClasses([]);
+    setClassNumber("");
+    if (!classSchoolId || !classGrade) return () => { active = false; };
+    setClassLookupLoading(true);
+    api("/api/neis/classes?schoolId=" + encodeURIComponent(classSchoolId) + "&grade=" + encodeURIComponent(classGrade))
+      .then(data => { if (active) setNeisClasses(data.classes || []); })
+      .catch(error => { if (active) setSearchError(error.message); })
+      .finally(() => { if (active) setClassLookupLoading(false); });
+    return () => { active = false; };
+  }, [classSchoolId, classGrade]);
 
   async function searchSchools() {
     const query = schoolQuery.trim();
@@ -74,7 +105,16 @@ export default function SetupModal({ schools, saving, onSubmit, initialTab }) {
       <input type="hidden" name="schoolCode" value={selectedSchool?.schoolCode || ""} />
       <button className="button button-primary full-button" disabled={saving || !selectedSchool}>{saving ? "등록 중…" : "선택한 학교 등록하기"} <ArrowRight size={16} /></button>
     </form>}
-    {tab === "class" && <form className="modal-form" onSubmit={e => { if (!classSchoolId || !classGrade || !classNumber) { e.preventDefault(); setSearchError("학교, 학년, 반을 모두 선택해 주세요."); return; } onSubmit(e, "class"); }}><Field label="학교"><select required value={classSchoolId} onChange={e => { setClassSchoolId(e.target.value); setClassGrade(""); setClassNumber(""); setSearchError(""); }}><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select></Field><Field label="학년"><div className="choice-card-grid grade-card-grid">{[1, 2, 3].map(g => <button type="button" key={g} className={"choice-card" + (classGrade === String(g) ? " selected" : "")} disabled={!classSchoolId} onClick={() => { setClassGrade(String(g)); setClassNumber(""); setSearchError(""); }}><span className="choice-card-number">{g}</span><strong>{g}학년</strong></button>)}</div></Field><Field label="반"><div className="choice-card-grid class-card-grid">{Array.from({ length: 20 }, (_, i) => i + 1).map(n => <button type="button" key={n} className={"choice-card" + (classNumber === String(n) ? " selected" : "")} disabled={!classSchoolId || !classGrade} onClick={() => { setClassNumber(String(n)); setSearchError(""); }}><strong>{n}반</strong></button>)}</div></Field><input type="hidden" name="schoolId" value={classSchoolId} /><input type="hidden" name="grade" value={classGrade} /><input type="hidden" name="classNumber" value={classNumber} />{searchError && <p className="inline-error" role="status">{searchError}</p>}<button className="button button-primary full-button" disabled={saving || !classSchoolId || !classGrade || !classNumber}>{saving ? "등록 중…" : "선택한 학급 등록하기"} <ArrowRight size={16} /></button></form>}
+    {tab === "class" && <form className="modal-form" onSubmit={e => { if (!classSchoolId || !classGrade || !classNumber) { e.preventDefault(); setSearchError("학교, 학년, 반을 모두 선택해 주세요."); return; } onSubmit(e, "class"); }}>
+      <Field label="학교"><select required value={classSchoolId} onChange={e => { setClassSchoolId(e.target.value); setClassGrade(""); setClassNumber(""); setSearchError(""); }}><option value="">학교 선택</option>{schools.map(school => <option key={school.id} value={school.id}>{school.name}{school.region ? " · " + school.region : ""}</option>)}</select></Field>
+      <Field label="학년"><div className="choice-card-grid grade-card-grid">{neisGrades.map(grade => <button type="button" key={grade} className={"choice-card" + (classGrade === String(grade) ? " selected" : "")} disabled={!classSchoolId || classLookupLoading} onClick={() => { setClassGrade(String(grade)); setClassNumber(""); setSearchError(""); }}><span className="choice-card-number">{grade}</span><strong>{grade}학년</strong></button>)}</div></Field>
+      <Field label="반"><div className="choice-card-grid class-card-grid">{neisClasses.map(label => { const number = String(label).match(/\\d+/)?.[0] || ""; return <button type="button" key={label} className={"choice-card" + (classNumber === number ? " selected" : "")} disabled={!classGrade || classLookupLoading || !number} onClick={() => { setClassNumber(number); setSearchError(""); }}><strong>{/^\\d+$/.test(String(label)) ? label + "반" : label}</strong></button>; })}</div></Field>
+      {classLookupLoading && <p className="school-search-hint">나이스 학급 정보 불러오는 중…</p>}
+      {!classLookupLoading && classSchoolId && !neisGrades.length && <p className="school-search-hint">나이스 학급 정보가 없어요. 학교를 나이스 검색으로 다시 등록했는지 확인해 주세요.</p>}
+      {searchError && <p className="inline-error" role="status">{searchError}</p>}
+      <input type="hidden" name="schoolId" value={classSchoolId} /><input type="hidden" name="grade" value={classGrade} /><input type="hidden" name="classNumber" value={classNumber} />
+      <button className="button button-primary full-button" disabled={saving || classLookupLoading || !classSchoolId || !classGrade || !classNumber}>{saving ? "등록 중…" : "선택한 학급 등록하기"} <ArrowRight size={16} /></button>
+    </form>}
     {tab === "subject" && <form className="modal-form" onSubmit={e => onSubmit(e, "subject")}><Field label="학교"><select name="schoolId" required defaultValue={schools[0]?.id || ""}><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field><Field label="과목명"><input name="name" maxLength="100" required placeholder="예: 통합과학" /></Field><button className="button button-primary full-button" disabled={saving}>과목 등록하기 <ArrowRight size={16} /></button></form>}
   </div>;
 }
