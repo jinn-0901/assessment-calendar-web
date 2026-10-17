@@ -40,6 +40,8 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [query, setQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("cards");
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [saving, setSaving] = useState(false);
   const [schoolSearch, setSchoolSearch] = useState("");
   const [schoolResults, setSchoolResults] = useState([]);
@@ -85,6 +87,17 @@ export default function App() {
   }), [assessments, query, subjectFilter]);
   const upcomingCount = assessments.filter(a => a.due_date >= todayISO()).length;
   const nextAssessment = [...assessments].filter(a => a.due_date >= todayISO()).sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+  const calendarCells = useMemo(() => {
+    const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+    const start = new Date(first);
+    start.setDate(first.getDate() - first.getDay());
+    return Array.from({ length: 42 }, (_, i) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const iso = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+      return { date, iso, inMonth: date.getMonth() === calendarMonth.getMonth(), items: filteredAssessments.filter(item => item.due_date === iso) };
+    });
+  }, [calendarMonth, filteredAssessments]);
 
   const notify = (message, type = "success") => {
     setNotice({ message, type });
@@ -365,7 +378,7 @@ export default function App() {
       setClassId(targetClass);
       setModal(null);
       await refreshAssessments(targetClass);
-      notify(data?.message || (id ? "수정 신청을 보냈어요. 관리자 승인 후 반영됩니다." : "등록 신청을 보냈어요. 관리자 승인 후 공개됩니다."));
+      notify(data?.message || (id ? (admin ? "일정을 수정했어요." : "수정 신청을 보냈어요. 관리자 승인 후 반영됩니다.") : (admin ? "일정을 등록했어요. 바로 공개됩니다." : "등록 신청을 보냈어요. 관리자 승인 후 공개됩니다.")));
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
   }
@@ -403,6 +416,7 @@ export default function App() {
   }
 
   return <div className="app-shell">
+    <style>{`.view-switch{display:flex;gap:4px;padding:4px;border:1px solid #e4e7ec;border-radius:12px;background:#fff}.view-switch button{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:8px;background:transparent;padding:9px 12px;color:#667085;font:inherit;cursor:pointer}.view-switch button.selected{background:#f0edff;color:#5b43c2;font-weight:700}.calendar-view{border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:#fff}.calendar-heading{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;border-bottom:1px solid #e5e7eb}.calendar-heading h3{margin:0;font-size:18px;min-width:145px;text-align:center}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}.calendar-weekday{text-align:center;padding:10px 2px;background:#f8fafc;color:#667085;font-size:12px;font-weight:700;border-bottom:1px solid #e5e7eb}.calendar-day{min-height:105px;min-width:0;padding:6px;border-right:1px solid #edf0f4;border-bottom:1px solid #edf0f4}.calendar-day:nth-child(7n){border-right:0}.calendar-day.outside-month{background:#fafafa;color:#b8bec8}.calendar-day.today{background:#f6f3ff}.calendar-day-number{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;font-size:12px;border-radius:50%}.calendar-day.today .calendar-day-number{background:#6848d6;color:white;font-weight:700}.calendar-day-items{display:grid;gap:4px;margin-top:4px}.calendar-event{display:block;width:100%;min-width:0;border:0;border-radius:5px;background:#f0edff;color:#4934a3;text-align:left;padding:4px 5px;font-size:11px;cursor:pointer;overflow:hidden}.calendar-event b,.calendar-event span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.calendar-event span{margin-top:2px}.approval-meta{margin:7px 0;color:#475467;font-size:14px;line-height:1.6}.approval-details{margin:12px 0;padding:12px 14px;background:#f8fafc;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;color:#344054}.modal-wide .assessment-item{width:100%;box-sizing:border-box;align-items:flex-start;padding:20px;gap:18px}.modal-wide .assessment-content{min-width:0;flex:1}.modal-wide .assessment-content h3{font-size:19px;margin:10px 0}.modal-wide .item-actions{display:flex;gap:8px;flex-wrap:wrap}.modal-wide .item-actions .button{white-space:nowrap}@media(max-width:700px){.list-toolbar{flex-wrap:wrap}.view-switch{width:100%;justify-content:stretch}.view-switch button{flex:1;justify-content:center}.calendar-day{min-height:76px;padding:3px}.calendar-event{font-size:10px;padding:3px}.calendar-heading{gap:6px;flex-wrap:wrap}.calendar-heading h3{min-width:120px;font-size:16px}.modal-wide .assessment-item{padding:13px;gap:10px}.modal-wide .item-actions{width:100%;justify-content:flex-end}}`}</style>
     <header className="topbar">
       <a className="brand" href="#" onClick={e => e.preventDefault()}>
         <span className="brand-icon"><CalendarDays size={21} strokeWidth={2.5} /></span>
@@ -462,22 +476,39 @@ export default function App() {
         <div className="list-toolbar">
           <div className="search-box"><Search size={17} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="수행평가 또는 과목 검색" /></div>
           <div className="filter-box"><SlidersHorizontal size={16} /><select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)}><option value="all">모든 과목</option>{subjectNames.map(name => <option key={name} value={name}>{name}</option>)}</select><ChevronDown size={14} /></div>
+          <div className="view-switch" role="group" aria-label="일정 보기 방식">
+            <button type="button" className={viewMode === "cards" ? "selected" : ""} onClick={() => setViewMode("cards")}><Layers3 size={15} /> 카드형</button>
+            <button type="button" className={viewMode === "calendar" ? "selected" : ""} onClick={() => setViewMode("calendar")}><CalendarDays size={15} /> 달력형</button>
+          </div>
         </div>
 
         {loading ? <div className="loading-state">일정을 불러오고 있어요…</div> : !classId ? <EmptyState icon={School} title="먼저 학교와 학급을 선택해 주세요" description="학급을 선택하면 등록된 수행평가 일정을 확인할 수 있어요." /> : filteredAssessments.length === 0 ? <EmptyState icon={BookOpen} title={query || subjectFilter !== "all" ? "검색 결과가 없어요" : "아직 등록된 일정이 없어요"} description={query || subjectFilter !== "all" ? "검색어나 과목 필터를 바꿔 보세요." : "첫 일정을 등록해 친구들과 공유해 보세요."} /> :
-          <div className="assessment-list">{filteredAssessments.map(item => {
+          {viewMode === "calendar" ? <div className="calendar-view">
+            <div className="calendar-heading">
+              <button className="button button-light" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} aria-label="이전 달">‹</button>
+              <h3>{calendarMonth.getFullYear()}년 {calendarMonth.getMonth()+1}월</h3>
+              <button className="button button-light" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 1))} aria-label="다음 달">›</button>
+              <button className="button button-light" onClick={() => setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}>이번 달</button>
+            </div>
+            <div className="calendar-grid">
+              {["일","월","화","수","목","금","토"].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}
+              {calendarCells.map(cell => <div key={cell.iso} className={"calendar-day" + (!cell.inMonth ? " outside-month" : "") + (cell.iso === todayISO() ? " today" : "")}>
+                <span className="calendar-day-number">{cell.date.getDate()}</span>
+                <div className="calendar-day-items">{cell.items.map(item => <button type="button" className="calendar-event" key={item.id} title={item.title + " · " + item.subject_name} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{item.title}</span></button>)}</div>
+              </div>)}
+            </div>
+          </div> : <div className="assessment-list">{filteredAssessments.map(item => {
             const date = dateParts(item.due_date);
-            const own = false;
             return <article className="assessment-item" key={item.id}>
               <div className="date-tile"><span>{date.month}월</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
-              <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className="meta-avatar">{item.author?.slice(0, 1) || "?"}</span>{item.author} 등록</div></div>
-              <div className="item-actions"><button className="icon-button" title="수정 신청" onClick={() => openAssessment(item)}><Pencil size={16} /></button></div>
+              <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span><span className="date-tag">{item.author === "학교 관리자" ? "관리자 등록" : "학생 등록"}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className="meta-avatar">{item.author?.slice(0, 1) || "?"}</span>{item.author || "학생"} 등록</div></div>
+              <div className="item-actions"><button className="icon-button" title={admin ? "일정 수정" : "수정 신청"} onClick={() => openAssessment(item)}><Pencil size={16} /></button></div>
             </article>;
-          })}</div>
+          })}</div>}
         }
       </section>
 
-      <section className="bottom-tip"><div className="tip-icon"><CircleHelp size={20} /></div><div><strong>일정이 잘못 등록되어 있나요?</strong><p>누구나 일정을 신청할 수 있고, 새 일정과 수정 사항은 해당 학교 관리자가 승인한 뒤 반영돼요.</p></div></section>
+      <section className="bottom-tip"><div className="tip-icon"><CircleHelp size={20} /></div><div><strong>일정이 잘못 등록되어 있나요?</strong><p>학생이 신청한 일정은 관리자 승인 후 공개되고, 학교 관리자가 직접 등록한 일정은 즉시 공개돼요.</p></div></section>
       <footer><a className="footer-brand" href="#" onClick={e => e.preventDefault()}>모아<span>.</span></a><span>함께 정리하고, 미리 준비하기.</span><span>학교생활을 조금 더 가볍게 ✳</span></footer>
     </main>
 
@@ -536,7 +567,7 @@ export default function App() {
     {modal?.type === "adminQueue" && <Modal title="일정 승인함" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)} wide>
       <p className="modal-description">새 일정과 수정 신청을 확인한 뒤 승인하거나 반려해 주세요.</p>
       {!requests.length ? <EmptyState title="대기 중인 신청이 없어요" description="새 신청이 들어오면 여기에 표시돼요." /> : <div className="assessment-list">{requests.map(r => <article className="assessment-item" key={r.id}>
-        <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{r.action === "create" ? "새 일정" : "수정 신청"}</span><span className="date-tag">{new Date(r.created_at).toLocaleString("ko-KR")}</span></div><h3>{r.payload.title}</h3><p className="item-details">{r.payload.dueDate} · {r.payload.details || "세부 내용 없음"}</p><div className="item-actions"><button className="button button-primary" onClick={() => decideRequest(r.id,"approve")}>승인</button><button className="button button-light" onClick={() => decideRequest(r.id,"reject")}>반려</button></div></div>
+        <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{r.action === "create" ? "학생 일정 등록" : "학생 수정 신청"}</span><span className="date-tag">신청 {new Date(r.created_at).toLocaleString("ko-KR")}</span></div><h3>{r.payload.title}</h3><p className="approval-meta"><b>과목</b> {r.subject_name || "과목 정보 없음"}　·　<b>학급</b> {r.grade ? `${r.grade}학년 ${r.class_number}반` : "학급 정보 없음"}</p><p className="approval-meta"><b>평가 날짜</b> {r.payload.dueDate || "날짜 없음"}</p><p className="approval-details"><b>세부 내용</b><br />{r.payload.details || "세부 내용이 입력되지 않았어요."}</p><div className="item-actions"><button className="button button-primary" onClick={() => decideRequest(r.id,"approve")}>승인</button><button className="button button-light" onClick={() => decideRequest(r.id,"reject")}>반려</button></div></div>
       </article>)}</div>}
     </Modal>}
 
