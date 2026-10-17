@@ -3,7 +3,8 @@
 여러 학교의 학년·반·과목별 수행평가 일정을 조회하고 공유하는 반응형 웹 앱입니다. iPad에서도 사용할 수 있도록 설계합니다.
 
 ## 기술 스택
-- Frontend: React, Vite, JavaScript, CSS
+- Frontend: React, JavaScript, CSS
+- Frontend bundling: esbuild (Vite 미사용)
 - Backend: Node.js, Express
 - Database: PostgreSQL (직접 설계: `schema.sql`)
 - Hosting: Render
@@ -17,7 +18,7 @@
 - 학교, 학급, 과목 추가
 - 모바일과 태블릿 화면에 대응하는 레이아웃
 
-## 로컬 개발
+## 실행 방법
 Node.js 20 이상이 필요합니다.
 
 ```bash
@@ -26,7 +27,7 @@ npm run build
 npm start
 ```
 
-프런트엔드 개발 서버를 사용할 때는 한 터미널에서 `npm start`, 다른 터미널에서 `npm run dev`를 실행합니다. Vite는 `/api` 요청을 로컬 Express 서버로 전달합니다.
+브라우저에서 `http://localhost:3000`을 여세요. 프런트엔드 파일은 esbuild가 `client/src/main.jsx`를 묶어 `dist/assets/`에 생성하고, Express가 빌드된 페이지와 API를 함께 제공합니다. 프런트엔드 코드를 수정한 뒤에는 `npm run build`를 다시 실행해야 합니다.
 
 ## Render 배포
 - Runtime: Node
