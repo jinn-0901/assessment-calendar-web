@@ -201,7 +201,7 @@ app.get("/api/assessments", async (req, res, next) => {
       `SELECT a.id, a.class_id, a.subject_id, a.title, a.details,
               to_char(a.due_date, 'YYYY-MM-DD') AS due_date,
               a.created_by, u.display_name AS author, s.name AS subject_name,
-              c.grade, c.class_number, sc.name AS school_name, sc.region
+              c.school_id, c.grade, c.class_number, sc.name AS school_name, sc.region
        FROM assessments a
        JOIN users u ON u.id = a.created_by
        JOIN subjects s ON s.id = a.subject_id
@@ -267,11 +267,11 @@ app.delete("/api/assessments/:id", requireLogin, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(__dirname, "..", "dist")));
 
 app.use((req, res) => {
   if (req.path.startsWith("/api/")) return res.status(404).json({ error: "요청한 API를 찾을 수 없습니다." });
-  res.status(404).send("페이지를 찾을 수 없습니다.");
+  res.sendFile(path.join(__dirname, "..", "dist", "index.html"), (error) => {\n    if (error && !res.headersSent) res.status(404).send("페이지를 찾을 수 없습니다. 먼저 프런트엔드를 빌드해 주세요.");\n  });
 });
 
 app.use((error, req, res, next) => {
