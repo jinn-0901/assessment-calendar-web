@@ -18,6 +18,11 @@ export default function App() {
   const [requests, setRequests] = useState([]);
   const [registrationCodes, setRegistrationCodes] = useState([]);
   const [issuedCode, setIssuedCode] = useState("");
+  const [regSchoolQuery, setRegSchoolQuery] = useState("");
+  const [regSchoolResults, setRegSchoolResults] = useState([]);
+  const [regSchool, setRegSchool] = useState(null);
+  const [regSchoolLoading, setRegSchoolLoading] = useState(false);
+  const [regSchoolError, setRegSchoolError] = useState("");
   const [schools, setSchools] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -220,6 +225,42 @@ export default function App() {
     } catch (error) { notify(error.message, "error"); }
   }
 
+  async function searchRegistrationSchools() {
+    const q = regSchoolQuery.trim();
+    if (q.length < 2) { setRegSchoolError("학교 이름을 두 글자 이상 입력해 주세요."); return; }
+    setRegSchoolLoading(true); setRegSchoolError("");
+    try {
+      const data = await api("/api/neis/schools?q=" + encodeURIComponent(q));
+      setRegSchoolResults(data.schools || []);
+      if (!data.schools?.length) setRegSchoolError("검색 결과가 없어요.");
+    } catch (error) { setRegSchoolError(error.message); setRegSchoolResults([]); }
+    finally { setRegSchoolLoading(false); }
+  }
+
+  async function chooseRegistrationSchool(school) {
+    setSaving(true);
+    try {
+      const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: school.name, region: [school.region, school.address].filter(Boolean).join(" · ").slice(0,120), officeCode: school.officeCode, schoolCode: school.schoolCode }) });
+      setRegSchool({ ...school, id: String(data.school.id) });
+      setRegSchoolQuery(school.name);
+      setRegSchoolResults([]);
+      setRegSchoolError("");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
+  async function bootstrapRegistrationCode(event) {
+    event.preventDefault(); setSaving(true);
+    const form = new FormData(event.currentTarget);
+    try {
+      const data = await api("/api/admin/registration-codes/bootstrap", { method: "POST", body: JSON.stringify({ setupKey: form.get("setupKey"), schoolId: regSchool?.id }) });
+      setIssuedCode(data.registrationCode);
+      setModal({ type: "bootstrapCode" });
+      notify("최초 등록 코드를 발급했어요. 안전하게 전달해 주세요.");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
   async function registerAdmin(event) {
     event.preventDefault(); setSaving(true);
     const form = new FormData(event.currentTarget);
@@ -409,11 +450,22 @@ export default function App() {
     {modal?.type === "adminRegister" && <Modal title="학교 관리자 등록" eyebrow="SCHOOL ADMIN SETUP" onClose={() => setModal(null)}>
       <p className="modal-description">학교 담당자에게 받은 일회용 등록 코드를 입력해 관리자 계정을 만들어요. 코드는 24시간 후 만료되며 한 번만 사용할 수 있어요.</p>
       <form className="modal-form" onSubmit={registerAdmin}>
-        <Field label="학교"><select name="schoolId" required defaultValue=""><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select></Field>
+        <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={regSchoolQuery} onChange={e => { setRegSchoolQuery(e.target.value); setRegSchool(null); setRegSchoolResults([]); setRegSchoolError(""); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchRegistrationSchools(); } }} placeholder="나이스 학교 이름 검색" /><button className="button button-dark" type="button" onClick={searchRegistrationSchools} disabled={regSchoolLoading}>{regSchoolLoading ? "검색 중…" : "검색"}</button></div>{regSchoolError && <small className="main-school-error">{regSchoolError}</small>}{regSchoolResults.length > 0 && <div className="main-school-results">{regSchoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseRegistrationSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}{regSchool && <small>선택한 학교: {regSchool.name} · {regSchool.region}</small>}</div><input type="hidden" name="schoolId" value={regSchool?.id || ""} /></Field>
         <Field label="일회용 등록 코드"><input name="registrationCode" required autoComplete="one-time-code" minLength="20" maxLength="24" /></Field>
         <Field label="새 관리자 비밀번호"><input name="password" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /><small>12자 이상으로 설정해 주세요.</small></Field>
         <button className="button button-primary full-button" disabled={saving}>{saving ? "등록 중…" : "관리자 등록"} <ArrowRight size={16} /></button>
       </form>
+      <button className="button button-light full-button" type="button" onClick={() => { setRegSchool(null); setRegSchoolQuery(""); setRegSchoolResults([]); setRegSchoolError(""); setIssuedCode(""); setModal({ type: "bootstrapCode" }); }}>운영자용 최초 등록 코드 발급</button>
+    </Modal>}
+
+    {modal?.type === "bootstrapCode" && <Modal title="최초 등록 코드 발급" eyebrow="OPERATOR ONLY" onClose={() => setModal(null)}>
+      <p className="modal-description">학교 담당자 확인 후에만 발급하세요. 운영자 인증 키는 저장하지 않으며, 발급 코드는 24시간 후 만료됩니다.</p>
+      <form className="modal-form" onSubmit={bootstrapRegistrationCode}>
+        <Field label="운영자 인증 키"><input name="setupKey" type="password" required autoComplete="off" /></Field>
+        <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={regSchoolQuery} onChange={e => { setRegSchoolQuery(e.target.value); setRegSchool(null); setRegSchoolResults([]); setRegSchoolError(""); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchRegistrationSchools(); } }} placeholder="나이스 학교 이름 검색" /><button className="button button-dark" type="button" onClick={searchRegistrationSchools} disabled={regSchoolLoading}>{regSchoolLoading ? "검색 중…" : "검색"}</button></div>{regSchoolError && <small className="main-school-error">{regSchoolError}</small>}{regSchoolResults.length > 0 && <div className="main-school-results">{regSchoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseRegistrationSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}{regSchool && <small>선택한 학교: {regSchool.name} · {regSchool.region}</small>}</div></Field>
+        <button className="button button-primary full-button" disabled={saving || !regSchool}>{saving ? "발급 중…" : "최초 등록 코드 발급"} <ArrowRight size={16} /></button>
+      </form>
+      {issuedCode && <div className="registration-code-display"><strong>최초 등록 코드</strong><code>{issuedCode}</code><button className="button button-light" type="button" onClick={() => { navigator.clipboard?.writeText(issuedCode); notify("코드를 복사했어요."); }}>코드 복사</button></div>}
     </Modal>}
 
     {modal?.type === "registrationCodes" && <Modal title="학교 등록 코드 관리" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)}>
