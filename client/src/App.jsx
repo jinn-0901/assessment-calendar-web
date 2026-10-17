@@ -5,9 +5,11 @@ import {
   BookOpen, Pencil, Trash2, SlidersHorizontal, School, Layers3
 } from "lucide-react";
 
+const API_BASE_URL = (process.env.API_BASE_URL || "").replace(/\\/$/, "");
+
 async function api(url, options = {}) {
-  const response = await fetch(url, {
-    credentials: "same-origin",
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    credentials: "include",
     ...options,
     headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) }
   });
