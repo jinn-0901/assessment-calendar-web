@@ -33,6 +33,34 @@ export default function App() {
   const [schoolResults, setSchoolResults] = useState([]);
   const [schoolSearching, setSchoolSearching] = useState(false);
   const [schoolSearchError, setSchoolSearchError] = useState("");
+  const [neisGrades, setNeisGrades] = useState([]);
+  const [neisClassLabels, setNeisClassLabels] = useState([]);
+  const [neisLoading, setNeisLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setNeisGrades([]);
+    setNeisClassLabels([]);
+    if (!schoolId) return () => { active = false; };
+    setNeisLoading(true);
+    api("/api/neis/classes?schoolId=" + encodeURIComponent(schoolId))
+      .then(data => { if (active) setNeisGrades((data.grades || []).map(String)); })
+      .catch(error => { if (active) notify(error.message, "error"); })
+      .finally(() => { if (active) setNeisLoading(false); });
+    return () => { active = false; };
+  }, [schoolId]);
+
+  useEffect(() => {
+    let active = true;
+    setNeisClassLabels([]);
+    if (!schoolId || !grade) return () => { active = false; };
+    setNeisLoading(true);
+    api("/api/neis/classes?schoolId=" + encodeURIComponent(schoolId) + "&grade=" + encodeURIComponent(grade))
+      .then(data => { if (active) setNeisClassLabels(data.classes || []); })
+      .catch(error => { if (active) notify(error.message, "error"); })
+      .finally(() => { if (active) setNeisLoading(false); });
+    return () => { active = false; };
+  }, [schoolId, grade]);
 
   const selectedSchool = schools.find(s => String(s.id) === String(schoolId));
   const selectedClass = classes.find(c => String(c.id) === String(classId));
@@ -285,8 +313,8 @@ export default function App() {
         </div>
         <div className="select-grid">
           <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={schoolSearch} onChange={e => { setSchoolSearch(e.target.value); setSchoolSearchError(""); setSchoolId(""); setGrade(""); setClassId(""); setSchoolResults([]); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchSchools(); } }} placeholder="학교 이름 검색" /><button className="button button-dark" type="button" onClick={() => searchSchools()} disabled={schoolSearching}>{schoolSearching ? "검색 중…" : "검색"}</button></div>{schoolSearchError && <small className="main-school-error">{schoolSearchError}</small>}{schoolResults.length > 0 && <div className="main-school-results">{schoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}</div></Field>
-          <Field label="학년"><div className="choice-card-grid grade-card-grid">{[1,2,3].map(g => <button type="button" key={g} className={"choice-card"+(String(grade)===String(g)?" selected":"")} disabled={!schoolId} onClick={() => { setGrade(String(g)); setClassId(""); }}><span className="choice-card-number">{g}</span><strong>{g}학년</strong></button>)}</div></Field>
-          <Field label="반"><div className="choice-card-grid class-card-grid">{Array.from({length:20},(_,i)=>i+1).map(n => <button type="button" key={n} className={"choice-card"+(String(classes.find(c=>String(c.id)===String(classId))?.class_number || "")===String(n)?" selected":"")} disabled={!schoolId || !grade} onClick={async () => { try { const cls=await ensureClass(schoolId, grade, n); const data=await api("/api/schools/"+schoolId+"/classes"); setClasses(data.classes); setClassId(String(cls.id)); } catch(error) { notify(error.message,"error"); } }}><strong>{n}반</strong></button>)}</div></Field>
+          <Field label="학년"><div className="choice-card-grid grade-card-grid">{neisGrades.map(g => <button type="button" key={g} className={"choice-card"+(String(grade)===String(g)?" selected":"")} disabled={!schoolId || neisLoading} onClick={() => { setGrade(String(g)); setClassId(""); }}><span className="choice-card-number">{g}</span><strong>{g}학년</strong></button>)}</div></Field>
+          <Field label="반"><div className="choice-card-grid class-card-grid">{neisClassLabels.map(label => { const n = String(label).match(/\\d+/)?.[0] || ""; return <button type="button" key={label} className={"choice-card"+(String(classes.find(c=>String(c.id)===String(classId))?.class_number || "")===n?" selected":"")} disabled={!schoolId || !grade || neisLoading || !n} onClick={async () => { try { const cls=await ensureClass(schoolId, grade, n); const data=await api("/api/schools/"+schoolId+"/classes"); setClasses(data.classes); setClassId(String(cls.id)); } catch(error) { notify(error.message,"error"); } }}><strong>{/^\\d+$/.test(String(label)) ? label+"반" : label}</strong></button>; })}</div></Field>
         </div>
         <button className="text-action" onClick={() => setModal({ type: "setup", tab: "school" })}>학교·학급·과목이 없나요? <span>직접 추가하기 <ArrowRight size={14} /></span></button>
       </section>
