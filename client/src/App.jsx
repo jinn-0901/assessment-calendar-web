@@ -133,6 +133,8 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
+        const me = await api("/api/me");
+        setAdmin(me.admin);
         const data = await api("/api/schools");
         setSchools(data.schools);
         if (data.schools.length) setSchoolId(String(data.schools[0].id));
