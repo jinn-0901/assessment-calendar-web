@@ -217,7 +217,8 @@ export default function App() {
 
   async function submitSetup(event, kind) {
     event.preventDefault(); setSaving(true);
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       if (kind === "school") {
         const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: form.get("name"), region: form.get("region") }) });
@@ -239,7 +240,7 @@ export default function App() {
         await refreshSubjects(form.get("schoolId"));
         notify("과목을 등록했어요.");
       }
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
   }
