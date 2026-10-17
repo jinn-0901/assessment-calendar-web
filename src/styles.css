@@ -309,3 +309,40 @@
 :root[data-theme="dark"] .calendar-nav { color:#edf0fa!important; }
 :root[data-theme="dark"] .calendar-nav button,
 :root[data-theme="dark"] .calendar-toolbar button { color:#dcd9ff!important; }
+
+
+/* Improve contrast for academic schedule and assessment entries in dark mode. */
+:root[data-theme="dark"] .calendar-event,
+:root[data-theme="dark"] .calendar-event.event-continuation {
+  background:#373151!important;
+  color:#f0edff!important;
+  border-color:#51496f!important;
+}
+:root[data-theme="dark"] .calendar-event b,
+:root[data-theme="dark"] .calendar-event span { color:inherit!important; }
+:root[data-theme="dark"] .calendar-event.event-continuation { color:transparent!important; }
+:root[data-theme="dark"] .calendar-event-row.academic-event-row .calendar-event {
+  background:#203d32!important;
+  color:#c4f5d9!important;
+  border:1px solid #32634b!important;
+}
+:root[data-theme="dark"] .calendar-event-row.academic-event-row .calendar-event b { color:#a9e6c2!important; }
+:root[data-theme="dark"] .assessment-item,
+:root[data-theme="dark"] .academic-card {
+  background:#202231!important;
+  border-color:#393c50!important;
+  color:#edf0fa!important;
+}
+:root[data-theme="dark"] .assessment-content h3,
+:root[data-theme="dark"] .academic-card h3 { color:#f4f5fc!important; }
+:root[data-theme="dark"] .item-details,
+:root[data-theme="dark"] .item-meta,
+:root[data-theme="dark"] .date-tag { color:#b9bfd2!important; }
+:root[data-theme="dark"] .past-tag { color:#f0b98c!important; }
+:root[data-theme="dark"] .academic-card .subject-tag,
+:root[data-theme="dark"] .academic-card .item-labels .subject-tag {
+  background:#234236!important;
+  color:#b8f0d0!important;
+}
+:root[data-theme="dark"] .academic-card .date-tile { background:#302b50!important; color:#e2ddff!important; }
+:root[data-theme="dark"] .item-time { color:#c7cce0!important; }
