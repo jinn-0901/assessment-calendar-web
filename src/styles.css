@@ -37,3 +37,22 @@
 
 /* Classroom selector: dropdown for class and clear empty-state guidance */
 .class-select-wrap{position:relative;display:flex;align-items:center;min-width:0}.class-select-wrap select{width:100%;min-width:0;min-height:46px;appearance:none;padding:12px 34px 12px 13px;border:1px solid #e4e5ef;border-radius:12px;background:#fff;color:#33364e;font-size:12px;font-weight:600;outline:none}.class-select-wrap select:focus{border-color:#a6a0f3;box-shadow:0 0 0 3px #635bdf13}.class-select-wrap select:disabled{background:#f6f6fa;color:#9699aa;cursor:not-allowed}.class-select-wrap>svg{position:absolute;right:12px;pointer-events:none;color:#9699aa}.grade-selection-area{min-height:54px}.selection-placeholder{display:flex;align-items:center;justify-content:center;gap:9px;min-height:54px;padding:9px 12px;border:1px dashed #e2e1ef;border-radius:12px;background:#fafaff;color:#9295aa;font-size:11px;font-weight:500;line-height:1.6}.selection-placeholder svg{flex:0 0 auto;color:#8a83e8}.selection-placeholder.compact{justify-content:flex-start;min-height:46px}
+
+/* Theme follows the device by default; the in-app toggle can override it. */
+:root[data-theme="dark"]{color-scheme:dark;--ink:#f1f2f8;--muted:#a2a7ba;--line:#343747;--white:#202231;background:#141620;color:#f1f2f8}
+:root[data-theme="dark"] body{background:#141620;color:#f1f2f8}
+:root[data-theme="dark"] .topbar{background:#191b28e8;border-color:#303243}
+:root[data-theme="dark"] .hero-copy>p,:root[data-theme="dark"] .account-name,:root[data-theme="dark"] .schedule-header p,:root[data-theme="dark"] .section-subtitle{color:#a2a7ba}
+:root[data-theme="dark"] .stat-card,:root[data-theme="dark"] .schedule-area,:root[data-theme="dark"] .calendar-panel,:root[data-theme="dark"] .assessment-item,:root[data-theme="dark"] .approval-card,:root[data-theme="dark"] .meal-horizontal>div,:root[data-theme="dark"] .timetable-school-grid td{background:#202231;color:#f1f2f8;border-color:#343747}
+:root[data-theme="dark"] .calendar-grid{border-color:#343747}
+:root[data-theme="dark"] .calendar-day{border-color:#343747}
+:root[data-theme="dark"] .calendar-day.outside-month{background:#191b26;color:#656b80}
+:root[data-theme="dark"] .calendar-day.today{background:#28243e}
+:root[data-theme="dark"] .calendar-weekday,:root[data-theme="dark"] .timetable-school-grid th,:root[data-theme="dark"] .timetable-school-grid .period-label{background:#191b28;color:#b8bdd0;border-color:#343747}
+:root[data-theme="dark"] .calendar-heading{background:#202231!important;border-color:#343747!important}
+:root[data-theme="dark"] .button-light{background:#303346;color:#e5e7f2}
+:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{background:#202231;color:#f1f2f8;border-color:#45495d}
+:root[data-theme="dark"] .modal,:root[data-theme="dark"] [role="dialog"]>section{background:#202231!important;color:#f1f2f8}
+:root[data-theme="dark"] .academic-card,:root[data-theme="dark"] .empty-state,:root[data-theme="dark"] .bottom-tip{background:#202231;color:#f1f2f8;border-color:#343747}
+:root[data-theme="dark"] footer{color:#a2a7ba}
+@media(max-width:600px){.theme-toggle{padding:9px 10px;font-size:11px}}
