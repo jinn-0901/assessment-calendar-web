@@ -275,6 +275,10 @@ export default function App() {
   }, [grade, classes]);
 
   function openAssessment(item = null) {
+    if (item && !admin) {
+      setModal({ type: "assessmentDetail", item });
+      return;
+    }
     setModal({ type: "assessment", item, isNew: !item });
   }
 
@@ -646,12 +650,12 @@ export default function App() {
                 <div className="calendar-day-items">{cell.items.map(item => <button type="button" className="calendar-event" key={"assessment-"+item.id} title={item.title + " · " + item.subject_name} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{item.title}</span></button>)}{academicEvents.filter(event => event.date === cell.iso.replace(/-/g, "")).map((event,index) => <div className="calendar-event" key={"academic-"+event.date+"-"+event.name+"-"+index} style={{background:"#e8f7ee",color:"#17663a",cursor:"default"}} title={event.details || event.name}><b>학사일정</b><span>{event.name}</span></div>)}</div>
               </div>)}
             </div>
-          </div> : <div className="assessment-list">{filteredAssessments.map(item => {
+          </div> : <div className="assessment-list">{academicEvents.map((event,index) => <article className="assessment-item academic-card" key={"academic-card-"+event.date+"-"+event.name+"-"+index}><div className="date-tile"><span>{Number(event.date.slice(4,6))}월</span><strong>{Number(event.date.slice(6,8))}</strong><small>학사</small></div><div className="assessment-content"><div className="item-labels"><span className="subject-tag" style={{background:"#e8f7ee",color:"#17663a"}}>학사일정</span></div><h3>{event.name}</h3>{event.details && <p className="item-details">{event.details}</p>}</div></article>)}{filteredAssessments.map(item => {
             const date = dateParts(item.due_date);
             return <article className="assessment-item" key={item.id}>
               <div className="date-tile"><span>{date.month}월</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
               <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span><span className="date-tag">{item.author === "학교 관리자" ? "관리자 등록" : "학생 등록"}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className={"meta-avatar " + (item.author === "학교 관리자" ? "admin-author" : "student-author")}>{item.author === "학교 관리자" ? "관" : "학"}</span>{item.author === "학교 관리자" ? "학교 관리자 등록" : "학생 등록"}{(item.start_date && item.end_date && item.start_date !== item.end_date) ? <span className="item-time"> · {prettyDate(item.start_date)}{item.start_time ? " " + String(item.start_time).slice(0,5) : ""} ~ {prettyDate(item.end_date)}{item.end_time ? " " + String(item.end_time).slice(0,5) : ""}</span> : (item.start_time || item.end_time) ? <span className="item-time"> · {item.start_time ? String(item.start_time).slice(0,5) : "시간 미정"} ~ {item.end_time ? String(item.end_time).slice(0,5) : "시간 미정"}</span> : null}</div></div>
-              <div className="item-actions"><button className="icon-button" title={admin ? "일정 수정" : "수정 신청"} onClick={() => openAssessment(item)}><Pencil size={16} /></button>{admin && <button className="icon-button delete-action" title="일정 삭제" onClick={() => deleteAssessment(item)}><Trash2 size={16} /></button>}</div>
+              <div className="item-actions"><button className="icon-button" title={admin ? "일정 수정" : "상세 내역"} onClick={() => openAssessment(item)}>{admin ? <Pencil size={16} /> : <BookOpen size={16} />}</button>{admin && <button className="icon-button delete-action" title="일정 삭제" onClick={() => deleteAssessment(item)}><Trash2 size={16} /></button>}</div>
             </article>;
           })}</div>
         }
@@ -722,6 +726,17 @@ export default function App() {
       </article>)}</div>}
     </Modal>}
 
+    {modal?.type === "assessmentDetail" && <Modal title="수행평가 상세 내역" eyebrow={modal.item.subject_name || "수행평가"} onClose={() => setModal(null)}>
+      <div className="assessment-detail-view">
+        <h2>{modal.item.title}</h2>
+        <p><strong>과목</strong>　{modal.item.subject_name || "과목 정보 없음"}</p>
+        <p><strong>평가 날짜</strong>　{prettyDate(modal.item.start_date || modal.item.due_date)}{modal.item.end_date && modal.item.end_date !== (modal.item.start_date || modal.item.due_date) ? " ~ " + prettyDate(modal.item.end_date) : ""}</p>
+        <p><strong>시간</strong>　{modal.item.start_time ? String(modal.item.start_time).slice(0,5) : "미정"}{modal.item.end_time ? " ~ " + String(modal.item.end_time).slice(0,5) : ""}</p>
+        <p><strong>등록자</strong>　{modal.item.author || "정보 없음"}</p>
+        <div className="approval-details">{modal.item.details || "추가 상세 내용이 등록되지 않았어요."}</div>
+        <button className="button button-light full-button" type="button" onClick={() => setModal(null)}>닫기</button>
+      </div>
+    </Modal>}
     {modal?.type === "assessment" && <AssessmentModal
       item={modal.item}
       schools={schools}
