@@ -15,6 +15,23 @@ import SetupModal from "./components/setup/SetupModal.jsx";
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
+  const [themeMode, setThemeMode] = useState(() => window.localStorage.getItem("moa-theme") || "system");
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const darkMode = themeMode === "dark" || (themeMode === "system" && systemDark);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = event => setSystemDark(event.matches);
+    setSystemDark(media.matches);
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? "dark" : "light";
+    if (themeMode === "system") window.localStorage.removeItem("moa-theme");
+    else window.localStorage.setItem("moa-theme", themeMode);
+  }, [darkMode, themeMode]);
   const [requests, setRequests] = useState([]);
   const [registrationCodes, setRegistrationCodes] = useState([]);
   const [issuedCode, setIssuedCode] = useState("");
@@ -539,6 +556,7 @@ export default function App() {
         <span className="brand-name">모아<span>.</span><small>수행평가 일정</small></span>
       </a>
       <div className="top-actions">
+        <button className="button button-light theme-toggle" type="button" onClick={() => setThemeMode(current => current === "dark" ? "light" : "dark")} aria-label={darkMode ? "다크모드 끄기" : "다크모드 켜기"} title={themeMode === "system" ? "기기 설정 사용 중 · 눌러서 테마 전환" : "테마 전환"}>{darkMode ? "☀️ 라이트" : "🌙 다크"}</button>
         <span className="account-name">{admin ? <><span className="avatar"><ShieldCheck size={14} /></span>{admin.schoolName} 관리자</> : "로그인 없이 일정 신청"}</span>
         {admin ? <><button className="button button-light" onClick={() => setModal({ type: "changeAdminPassword" })}>비밀번호 변경</button><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button><button className="button button-light" onClick={adminLogout}>로그아웃</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
       </div>
