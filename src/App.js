@@ -23,6 +23,11 @@ export default function App() {
   const [regSchool, setRegSchool] = useState(null);
   const [regSchoolLoading, setRegSchoolLoading] = useState(false);
   const [regSchoolError, setRegSchoolError] = useState("");
+  const [loginSchoolQuery, setLoginSchoolQuery] = useState("");
+  const [loginSchoolResults, setLoginSchoolResults] = useState([]);
+  const [loginSchool, setLoginSchool] = useState(null);
+  const [loginSchoolLoading, setLoginSchoolLoading] = useState(false);
+  const [loginSchoolError, setLoginSchoolError] = useState("");
   const [schools, setSchools] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -186,11 +191,35 @@ export default function App() {
     setModal({ type: "assessment", item });
   }
 
+  async function searchLoginSchools() {
+    const q = loginSchoolQuery.trim();
+    if (q.length < 2) { setLoginSchoolError("학교 이름을 두 글자 이상 입력해 주세요."); setLoginSchoolResults([]); return; }
+    setLoginSchoolLoading(true); setLoginSchoolError("");
+    try {
+      const data = await api("/api/neis/schools?q=" + encodeURIComponent(q));
+      setLoginSchoolResults(data.schools || []);
+      if (!data.schools?.length) setLoginSchoolError("검색 결과가 없어요.");
+    } catch (error) { setLoginSchoolError(error.message); setLoginSchoolResults([]); }
+    finally { setLoginSchoolLoading(false); }
+  }
+
+  async function chooseLoginSchool(school) {
+    setSaving(true);
+    try {
+      const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: school.name, region: [school.region, school.address].filter(Boolean).join(" · ").slice(0,120), officeCode: school.officeCode, schoolCode: school.schoolCode }) });
+      setLoginSchool({ ...school, id: String(data.school.id) });
+      setLoginSchoolQuery(school.name);
+      setLoginSchoolResults([]);
+      setLoginSchoolError("");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
   async function adminLogin(event) {
     event.preventDefault(); setSaving(true);
     const form = new FormData(event.currentTarget);
     try {
-      const data = await api("/api/admin/login", { method: "POST", body: JSON.stringify({ schoolId: form.get("schoolId"), password: form.get("password") }) });
+      const data = await api("/api/admin/login", { method: "POST", body: JSON.stringify({ schoolId: loginSchool?.id, password: form.get("password") }) });
       setAdmin(data.admin); setModal(null); notify("관리자 인증이 완료됐어요.");
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
@@ -455,13 +484,13 @@ export default function App() {
     {notice && <div className={`toast ${notice.type === "error" ? "toast-error" : ""}`} role="status">{notice.type === "error" ? <CircleHelp size={17} /> : <Check size={17} />}{notice.message}<button onClick={() => setNotice(null)} aria-label="알림 닫기"><X size={15} /></button></div>}
 
     {modal?.type === "adminLogin" && <Modal title="학교 관리자 인증" eyebrow="SCHOOL ADMIN" onClose={() => setModal(null)}>
-      <p className="modal-description">관리자로 등록된 학교를 선택하고 관리자 비밀번호를 입력해 주세요.</p>
+      <p className="modal-description">나이스에서 학교를 검색해 선택한 뒤 관리자 비밀번호를 입력해 주세요.</p>
       <form className="modal-form" onSubmit={adminLogin}>
-        <Field label="학교"><select name="schoolId" required defaultValue=""><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select></Field>
+        <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={loginSchoolQuery} onChange={e => { setLoginSchoolQuery(e.target.value); setLoginSchool(null); setLoginSchoolResults([]); setLoginSchoolError(""); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchLoginSchools(); } }} placeholder="나이스 학교 이름 검색" /><button className="button button-dark" type="button" onClick={searchLoginSchools} disabled={loginSchoolLoading}>{loginSchoolLoading ? "검색 중…" : "검색"}</button></div>{loginSchoolError && <small className="main-school-error">{loginSchoolError}</small>}{loginSchoolResults.length > 0 && <div className="main-school-results">{loginSchoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseLoginSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}{loginSchool && <small>선택한 학교: {loginSchool.name} · {loginSchool.region}</small>}</div><input type="hidden" name="schoolId" value={loginSchool?.id || ""} /></Field>
         <Field label="관리자 비밀번호"><input name="password" type="password" required minLength="12" autoComplete="current-password" /></Field>
-        <button className="button button-primary full-button" disabled={saving}>{saving ? "확인 중…" : "관리자 인증"} <ArrowRight size={16} /></button>
+        <button className="button button-primary full-button" disabled={saving || !loginSchool}>{saving ? "확인 중…" : "관리자 인증"} <ArrowRight size={16} /></button>
       </form>
-      <button className="button button-light full-button" type="button" onClick={() => setModal({ type: "adminRegister" })}>등록 코드로 관리자 계정 만들기</button>
+      <button className="button button-light full-button" type="button" onClick={() => { setRegSchool(null); setRegSchoolQuery(""); setRegSchoolResults([]); setRegSchoolError(""); setModal({ type: "adminRegister" }); }}>등록 코드로 관리자 계정 만들기</button>
     </Modal>}
 
     {modal?.type === "adminRegister" && <Modal title="학교 관리자 등록" eyebrow="SCHOOL ADMIN SETUP" onClose={() => setModal(null)}>
