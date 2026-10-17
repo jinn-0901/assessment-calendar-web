@@ -21,7 +21,10 @@ esbuild.build({
   target: ["es2020"],
   outfile: path.join(assetsDir, "app.js"),
   loader: { ".jsx": "jsx" },
-  define: { "process.env.NODE_ENV": '"production"' },
+  define: {
+    "process.env.NODE_ENV": '"production"',
+    "process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL || "")
+  },
   logLevel: "info"
 }).catch((error) => {
   console.error(error);
