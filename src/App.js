@@ -561,17 +561,9 @@ export default function App() {
 
       <nav className="main-view-tabs" aria-label="학교 일정 메뉴">
         <button type="button" className={mainView === "assessments" ? "selected" : ""} onClick={() => setMainView("assessments")}><CalendarDays size={16}/> 일정 달력</button>
-        <button type="button" className={mainView === "academic" ? "selected" : ""} onClick={() => setMainView("academic")}><CalendarDays size={16}/> 학사일정</button>
         <button type="button" className={mainView === "timetable" ? "selected" : ""} onClick={() => setMainView("timetable")}><BookOpen size={16}/> 주간 시간표</button>
         <button type="button" className={mainView === "meals" ? "selected" : ""} onClick={() => setMainView("meals")}><GraduationCap size={16}/> 급식 달력</button>
       </nav>
-
-      {mainView === "academic" && <section className="schedule-area">
-        <div className="schedule-header"><div><span className="section-kicker">NEIS SCHOOL CALENDAR</span><h2>학교 학사일정</h2><p>{selectedSchool ? selectedSchool.name : "학교를 먼저 선택해 주세요."}</p></div></div>
-        <div className="calendar-view"><div className="calendar-heading"><button className="button button-light" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()-1,1))}>‹</button><h3>{calendarMonth.getFullYear()}년 {calendarMonth.getMonth()+1}월</h3><button className="button button-light" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+1,1))}>›</button><button className="button button-light" onClick={() => setCalendarMonth(new Date(new Date().getFullYear(),new Date().getMonth(),1))}>이번 달</button></div>
-          {academicLoading ? <div className="loading-state">나이스 학사일정을 불러오고 있어요…</div> : !schoolId ? <EmptyState icon={School} title="학교를 선택해 주세요" description="학교를 선택하면 나이스 학사일정을 확인할 수 있어요."/> : <div className="academic-event-list">{academicEvents.length ? academicEvents.map((event,index) => <article className="academic-event" key={event.date+"-"+event.name+"-"+index}><div className="academic-event-date">{event.date.slice(4,6)}월 {event.date.slice(6,8)}일</div><div><strong>{event.name}</strong>{event.details && <p>{event.details}</p>}</div></article>) : <EmptyState icon={CalendarDays} title="이 달에 조회된 학사일정이 없어요" description="나이스에 등록된 일정이 없거나 학교의 학사일정 제공 범위가 다를 수 있어요."/>}</div>}
-        </div>
-      </section>}
 
       {mainView === "timetable" && <section className="schedule-area">
         <div className="schedule-header"><div><span className="section-kicker">NEIS CLASS TIMETABLE</span><h2>반별 시간표</h2><p>{selectedSchool && selectedClass ? `${selectedSchool.name} · ${grade}학년 ${selectedClass.class_number}반` : "학교, 학년, 반을 선택해 주세요."}</p></div></div>
@@ -584,7 +576,7 @@ export default function App() {
             <div style={{overflowX:"auto"}}>
               <table className="timetable-school-grid">
                 <thead><tr><th className="period-label">교시</th>{timetableRows.map(day => <th key={day.date}>{["일","월","화","수","목","금","토"][new Date(day.date.slice(0,4)+"-"+day.date.slice(4,6)+"-"+day.date.slice(6,8)+"T12:00:00").getDay()]}<br/>{Number(day.date.slice(4,6))}/{Number(day.date.slice(6,8))}</th>)}</tr></thead>
-                <tbody>{Array.from({length:Math.max(0,...timetableRows.map(day=>day.lessons.length ? Math.max(...day.lessons.map(row=>row.period)) : 0))},(_,i)=>i+1).map(period=><tr key={period}><td className="period-label">{period}교시</td>{timetableRows.map(day=>{const row=day.lessons.find(item=>item.period===period);return <td key={day.date+"-"+period}>{row?<><strong>{row.subject||"과목 미등록"}</strong>{row.classroom&&<small>{row.classroom}</small>}</>:<span style={{color:"#c0c5ce"}}>—</span>}</td>})}</tr>)}</tbody>
+                <tbody>{Array.from({length:Math.max(0,...timetableRows.map(day=>day.lessons.length ? Math.max(...day.lessons.map(row=>row.period)) : 0))},(_,i)=>i+1).map(period=><tr key={period}><td className="period-label">{period}교시</td>{timetableRows.map(day=>{const row=day.lessons.find(item=>item.period===period);return <td key={day.date+"-"+period}>{row?<><strong>{row.subject||"과목 미등록"}</strong></>:<span style={{color:"#c0c5ce"}}>—</span>}</td>})}</tr>)}</tbody>
               </table>
             </div>
           ) : (
