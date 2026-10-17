@@ -483,7 +483,7 @@ export default function App() {
         </div>
 
         {loading ? <div className="loading-state">일정을 불러오고 있어요…</div> : !classId ? <EmptyState icon={School} title="먼저 학교와 학급을 선택해 주세요" description="학급을 선택하면 등록된 수행평가 일정을 확인할 수 있어요." /> : filteredAssessments.length === 0 ? <EmptyState icon={BookOpen} title={query || subjectFilter !== "all" ? "검색 결과가 없어요" : "아직 등록된 일정이 없어요"} description={query || subjectFilter !== "all" ? "검색어나 과목 필터를 바꿔 보세요." : "첫 일정을 등록해 친구들과 공유해 보세요."} /> :
-          {viewMode === "calendar" ? <div className="calendar-view">
+          viewMode === "calendar" ? <div className="calendar-view">
             <div className="calendar-heading">
               <button className="button button-light" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} aria-label="이전 달">‹</button>
               <h3>{calendarMonth.getFullYear()}년 {calendarMonth.getMonth()+1}월</h3>
