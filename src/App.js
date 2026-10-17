@@ -16,6 +16,8 @@ import SetupModal from "./components/setup/SetupModal.jsx";
 export default function App() {
   const [admin, setAdmin] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [registrationCodes, setRegistrationCodes] = useState([]);
+  const [issuedCode, setIssuedCode] = useState("");
   const [schools, setSchools] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -189,6 +191,46 @@ export default function App() {
     finally { setSaving(false); }
   }
 
+  async function issueRegistrationCode() {
+    try {
+      const data = await api("/api/admin/registration-codes", { method: "POST", body: JSON.stringify({}) });
+      setIssuedCode(data.registrationCode);
+      const list = await api("/api/admin/registration-codes");
+      setRegistrationCodes(list.codes || []);
+      notify("새 등록 코드를 발급했어요. 코드는 지금 복사해 안전하게 전달해 주세요.");
+    } catch (error) { notify(error.message, "error"); }
+  }
+
+  async function openRegistrationCodes() {
+    if (!admin) return;
+    try {
+      const data = await api("/api/admin/registration-codes");
+      setRegistrationCodes(data.codes || []);
+      setIssuedCode("");
+      setModal({ type: "registrationCodes" });
+    } catch (error) { notify(error.message, "error"); }
+  }
+
+  async function revokeRegistrationCode(id) {
+    try {
+      await api("/api/admin/registration-codes/" + id + "/revoke", { method: "POST", body: JSON.stringify({}) });
+      const data = await api("/api/admin/registration-codes");
+      setRegistrationCodes(data.codes || []);
+      notify("등록 코드를 폐기했어요.");
+    } catch (error) { notify(error.message, "error"); }
+  }
+
+  async function registerAdmin(event) {
+    event.preventDefault(); setSaving(true);
+    const form = new FormData(event.currentTarget);
+    try {
+      await api("/api/admin/register", { method: "POST", body: JSON.stringify({ schoolId: form.get("schoolId"), registrationCode: form.get("registrationCode"), password: form.get("password") }) });
+      setModal({ type: "adminLogin" });
+      notify("관리자 등록이 완료됐어요. 설정한 비밀번호로 로그인해 주세요.");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
   async function openAdminQueue() {
     if (!admin) { setModal({ type: "adminLogin" }); return; }
     try { const data = await api("/api/admin/requests"); setRequests(data.requests); setModal({ type: "adminQueue" }); }
@@ -281,7 +323,7 @@ export default function App() {
       </a>
       <div className="top-actions">
         <span className="account-name">{admin ? <><span className="avatar"><ShieldCheck size={14} /></span>{admin.schoolName} 관리자</> : "로그인 없이 일정 신청"}</span>
-        {admin ? <button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
+        {admin ? <><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
       </div>
     </header>
 
@@ -361,6 +403,24 @@ export default function App() {
         <Field label="관리자 비밀번호"><input name="password" type="password" required minLength="12" autoComplete="current-password" /></Field>
         <button className="button button-primary full-button" disabled={saving}>{saving ? "확인 중…" : "관리자 인증"} <ArrowRight size={16} /></button>
       </form>
+      <button className="button button-light full-button" type="button" onClick={() => setModal({ type: "adminRegister" })}>등록 코드로 관리자 계정 만들기</button>
+    </Modal>}
+
+    {modal?.type === "adminRegister" && <Modal title="학교 관리자 등록" eyebrow="SCHOOL ADMIN SETUP" onClose={() => setModal(null)}>
+      <p className="modal-description">학교 담당자에게 받은 일회용 등록 코드를 입력해 관리자 계정을 만들어요. 코드는 24시간 후 만료되며 한 번만 사용할 수 있어요.</p>
+      <form className="modal-form" onSubmit={registerAdmin}>
+        <Field label="학교"><select name="schoolId" required defaultValue=""><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select></Field>
+        <Field label="일회용 등록 코드"><input name="registrationCode" required autoComplete="one-time-code" minLength="20" maxLength="24" /></Field>
+        <Field label="새 관리자 비밀번호"><input name="password" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /><small>12자 이상으로 설정해 주세요.</small></Field>
+        <button className="button button-primary full-button" disabled={saving}>{saving ? "등록 중…" : "관리자 등록"} <ArrowRight size={16} /></button>
+      </form>
+    </Modal>}
+
+    {modal?.type === "registrationCodes" && <Modal title="학교 등록 코드 관리" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)}>
+      <p className="modal-description">학교 담당자의 권한을 확인한 뒤 코드를 전달해 주세요. 코드는 발급 직후에만 표시되며 24시간 동안 유효해요.</p>
+      <button className="button button-primary full-button" onClick={issueRegistrationCode}>새 일회용 코드 발급</button>
+      {issuedCode && <div className="registration-code-display"><strong>새 등록 코드</strong><code>{issuedCode}</code><button className="button button-light" type="button" onClick={() => { navigator.clipboard?.writeText(issuedCode); notify("코드를 복사했어요."); }}>코드 복사</button><small>이 화면을 닫기 전에 안전하게 전달해 주세요. 다시 표시할 수 없어요.</small></div>}
+      <div className="registration-code-list">{registrationCodes.map(code => <div className="registration-code-row" key={code.id}><div><strong>코드 #{code.id}</strong><small>{code.used_at ? "사용 완료" : code.revoked_at ? "폐기됨" : new Date(code.expires_at).getTime() < Date.now() ? "만료됨" : "사용 가능"} · 만료 {new Date(code.expires_at).toLocaleString("ko-KR")}</small></div>{!code.used_at && !code.revoked_at && new Date(code.expires_at).getTime() > Date.now() && <button className="button button-light" onClick={() => revokeRegistrationCode(code.id)}>폐기</button>}</div>)}</div>
     </Modal>}
 
     {modal?.type === "adminQueue" && <Modal title="일정 승인함" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)} wide>
