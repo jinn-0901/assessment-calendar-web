@@ -271,7 +271,9 @@ app.use(express.static(path.join(__dirname, "..", "dist")));
 
 app.use((req, res) => {
   if (req.path.startsWith("/api/")) return res.status(404).json({ error: "요청한 API를 찾을 수 없습니다." });
-  res.sendFile(path.join(__dirname, "..", "dist", "index.html"), (error) => {\n    if (error && !res.headersSent) res.status(404).send("페이지를 찾을 수 없습니다. 먼저 프런트엔드를 빌드해 주세요.");\n  });
+  res.sendFile(path.join(__dirname, "..", "dist", "index.html"), (error) => {
+    if (error && !res.headersSent) res.status(404).send("페이지를 찾을 수 없습니다. 먼저 프런트엔드를 빌드해 주세요.");
+  });
 });
 
 app.use((error, req, res, next) => {
