@@ -29,6 +29,10 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [saving, setSaving] = useState(false);
+  const [schoolSearch, setSchoolSearch] = useState("");
+  const [schoolResults, setSchoolResults] = useState([]);
+  const [schoolSearching, setSchoolSearching] = useState(false);
+  const [schoolSearchError, setSchoolSearchError] = useState("");
 
   const selectedSchool = schools.find(s => String(s.id) === String(schoolId));
   const selectedClass = classes.find(c => String(c.id) === String(classId));
@@ -46,6 +50,38 @@ export default function App() {
     setNotice({ message, type });
     window.setTimeout(() => setNotice(null), 4200);
   };
+
+  async function searchSchools(queryValue = schoolSearch) {
+    const q = queryValue.trim();
+    if (q.length < 2) { setSchoolSearchError("학교 이름을 두 글자 이상 입력해 주세요."); setSchoolResults([]); return; }
+    setSchoolSearching(true); setSchoolSearchError("");
+    try {
+      const data = await api("/api/neis/schools?q=" + encodeURIComponent(q));
+      setSchoolResults(data.schools || []);
+      if (!data.schools?.length) setSchoolSearchError("검색 결과가 없어요.");
+    } catch (error) { setSchoolSearchError(error.message); setSchoolResults([]); }
+    finally { setSchoolSearching(false); }
+  }
+
+  async function chooseSchool(school) {
+    setSaving(true);
+    try {
+      const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: school.name, region: [school.region, school.address].filter(Boolean).join(" · ").slice(0,120), officeCode: school.officeCode, schoolCode: school.schoolCode }) });
+      await refreshSchools(String(data.school.id));
+      setSchoolId(String(data.school.id)); setGrade(""); setClassId("");
+      setSchoolSearch(school.name); setSchoolResults([]); setSchoolSearchError("");
+      notify("학교를 선택했어요.");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
+  async function ensureClass(school, gradeValue, classNumber) {
+    const existing = await api("/api/schools/" + school + "/classes");
+    const found = existing.classes.find(x => Number(x.grade) === Number(gradeValue) && Number(x.class_number) === Number(classNumber));
+    if (found) return found;
+    const made = await api("/api/classes", { method: "POST", body: JSON.stringify({ schoolId: school, grade: Number(gradeValue), classNumber: Number(classNumber) }) });
+    return made.class;
+  }
 
   async function refreshSchools(preferredId) {
     const data = await api("/api/schools");
@@ -236,9 +272,9 @@ export default function App() {
           <span className="private-note"><School size={14} /> 학교별 일정 공유</span>
         </div>
         <div className="select-grid">
-          <Field label="학교"><span className="select-wrap"><select value={schoolId} onChange={e => { setSchoolId(e.target.value); setGrade(""); setClassId(""); }}><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select><ChevronDown size={15} /></span></Field>
-          <Field label="학년"><span className="select-wrap"><GraduationCap size={17} /><select value={grade} onChange={e => setGrade(e.target.value)} disabled={!grades.length}><option value="">학년 선택</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select><ChevronDown size={15} /></span></Field>
-          <Field label="반"><span className="select-wrap"><Layers3 size={17} /><select value={classId} onChange={e => setClassId(e.target.value)} disabled={!classOptions.length}><option value="">반 선택</option>{classOptions.map(c => <option key={c.id} value={c.id}>{c.class_number}반</option>)}</select><ChevronDown size={15} /></span></Field>
+          <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={schoolSearch} onChange={e => { setSchoolSearch(e.target.value); setSchoolSearchError(""); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchSchools(); } }} placeholder={selectedSchool?.name || "학교 이름 검색"} /><button className="button button-dark" type="button" onClick={() => searchSchools()} disabled={schoolSearching}>{schoolSearching ? "검색 중…" : "검색"}</button></div>{schoolSearchError && <small className="main-school-error">{schoolSearchError}</small>}{schoolResults.length > 0 && <div className="main-school-results">{schoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}</div></Field>
+          <Field label="학년"><select value={grade} onChange={e => { setGrade(e.target.value); setClassId(""); }} disabled={!schoolId}><option value="">학년 선택</option>{[1,2,3].map(g => <option key={g} value={String(g)}>{g}학년</option>)}</select></Field>
+          <Field label="반"><select value={classId ? String(classes.find(c=>String(c.id)===String(classId))?.class_number || "") : ""} onChange={async e => { if (!schoolId || !grade || !e.target.value) return; try { const cls=await ensureClass(schoolId, grade, e.target.value); const data=await api("/api/schools/"+schoolId+"/classes"); setClasses(data.classes); setClassId(String(cls.id)); } catch(error) { notify(error.message,"error"); } }} disabled={!schoolId || !grade}><option value="">반 선택</option>{Array.from({length:20},(_,i)=>i+1).map(n=><option key={n} value={String(n)}>{n}반</option>)}</select></Field>
         </div>
         <button className="text-action" onClick={() => setModal({ type: "setup", tab: "school" })}>학교·학급·과목이 없나요? <span>직접 추가하기 <ArrowRight size={14} /></span></button>
       </section>
