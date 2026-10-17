@@ -124,9 +124,9 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
           <input aria-label="학교 이름 검색" value={schoolQuery} onChange={e => setSchoolQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchNeisSchools(); } }} placeholder={schoolLabel || "학교 이름 검색"} />
           <button type="button" className="button button-secondary" onClick={searchNeisSchools} disabled={schoolSearching || schoolQuery.trim().length < 2}>{schoolSearching ? "검색 중…" : "검색"}</button>
         </div>
-        {schoolResults.length > 0 && <div className="school-search-results" role="listbox" aria-label="학교 검색 결과">
-          {schoolResults.map((school, index) => <button type="button" key={school.schoolCode || school.name + index} className="school-search-result" onClick={() => selectNeisSchool(school)}>
-            <strong>{school.name}</strong><span>{[school.region, school.schoolType, school.address].filter(Boolean).join(" · ")}</span>
+        {schoolResults.length > 0 && <div className="main-school-results" role="listbox" aria-label="학교 검색 결과">
+          {schoolResults.map((school, index) => <button type="button" key={school.schoolCode || school.name + index} onClick={() => selectNeisSchool(school)}>
+            <strong>{school.name}</strong><small>{[school.region, school.schoolType].filter(Boolean).join(" · ")}</small>
           </button>)}
         </div>}
         <input type="hidden" name="schoolId" value={chosenSchool} />
