@@ -347,22 +347,3 @@
 :root[data-theme="dark"] .academic-card .date-tile { background:#302b50!important; color:#e2ddff!important; }
 :root[data-theme="dark"] .item-time { color:#c7cce0!important; }
 
-
-/* A blank middle-day segment must not spill over neighboring events. */
-.calendar-event-row.assessment-event-row > .calendar-event.event-continuation {
-  width:100%!important;
-  min-width:0!important;
-  max-width:100%!important;
-  margin-left:0!important;
-  margin-right:0!important;
-  border-radius:0!important;
-  border-left:0!important;
-  border-right:0!important;
-  padding:0!important;
-  overflow:hidden!important;
-}
-:root[data-theme="dark"] .calendar-event-row.assessment-event-row > .calendar-event.event-continuation {
-  background:transparent!important;
-  color:transparent!important;
-  border-color:transparent!important;
-}
