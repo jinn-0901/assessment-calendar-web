@@ -48,6 +48,7 @@ export default function App() {
   const [timetableRows, setTimetableRows] = useState([]);
   const [mealMonth, setMealMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [mealRows, setMealRows] = useState([]);
+  const [mealViewMode, setMealViewMode] = useState("calendar");
   const [mealLoading, setMealLoading] = useState(false);
   const [timetableLoading, setTimetableLoading] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -100,6 +101,19 @@ export default function App() {
   const upcomingAssessments = assessments.filter(a => (a.end_date || a.due_date || "") >= todayISO()).sort(compareAssessmentStart);
   const upcomingCount = upcomingAssessments.length;
   const nextAssessment = upcomingAssessments[0];
+  const mealCalendarCells = useMemo(() => {
+    const first = new Date(mealMonth.getFullYear(), mealMonth.getMonth(), 1);
+    const start = new Date(first);
+    start.setDate(first.getDate() - first.getDay());
+    return Array.from({ length: 42 }, (_, i) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      const iso = [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-");
+      const neisDate = iso.replace(/-/g, "");
+      return { date, iso, inMonth: date.getMonth() === mealMonth.getMonth(), meals: mealRows.filter(meal => meal.date === neisDate).sort((a,b) => ["조식","중식","석식"].indexOf(a.mealType)-["조식","중식","석식"].indexOf(b.mealType)) };
+    });
+  }, [mealMonth, mealRows]);
+
   const calendarCells = useMemo(() => {
     const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
     const start = new Date(first);
@@ -598,7 +612,21 @@ export default function App() {
         <div className="schedule-header"><div><span className="section-kicker">NEIS SCHOOL MEALS</span><h2>급식 달력</h2><p>{selectedSchool ? selectedSchool.name : "학교를 먼저 선택해 주세요."}</p></div></div>
         <div className="calendar-view">
           <div className="calendar-heading"><button className="button button-light" onClick={() => setMealMonth(new Date(mealMonth.getFullYear(),mealMonth.getMonth()-1,1))}>‹</button><h3>{mealMonth.getFullYear()}년 {mealMonth.getMonth()+1}월</h3><button className="button button-light" onClick={() => setMealMonth(new Date(mealMonth.getFullYear(),mealMonth.getMonth()+1,1))}>›</button><button className="button button-light" onClick={() => setMealMonth(new Date(new Date().getFullYear(),new Date().getMonth(),1))}>이번 달</button></div>
-          {mealLoading ? <div className="loading-state">나이스 급식 정보를 불러오고 있어요…</div> : !schoolId ? <EmptyState icon={School} title="학교를 선택해 주세요" description="학교를 선택하면 날짜별 급식 메뉴를 확인할 수 있어요."/> : <div className="meal-calendar-list">{mealRows.length ? mealRows.map((meal,index) => <article className="meal-calendar-item" key={meal.date+"-"+meal.mealType+"-"+index}><strong>{meal.date.slice(4,6)}월 {meal.date.slice(6,8)}일</strong><div><b>{meal.mealType || "급식"}</b><p>{meal.menu}</p>{meal.calories && <small>{meal.calories}</small>}</div></article>) : <EmptyState icon={CalendarDays} title="등록된 급식이 없어요" description="해당 월에 나이스 급식 정보가 없을 수 있어요."/>}</div>}
+          <div className="view-switch" role="group" aria-label="급식 보기 방식">
+            <button type="button" className={mealViewMode === "cards" ? "selected" : ""} onClick={() => setMealViewMode("cards")}><Layers3 size={15}/> 카드형</button>
+            <button type="button" className={mealViewMode === "calendar" ? "selected" : ""} onClick={() => setMealViewMode("calendar")}><CalendarDays size={15}/> 달력형</button>
+          </div>
+          {mealLoading ? <div className="loading-state">나이스 급식 정보를 불러오고 있어요…</div> : !schoolId ? <EmptyState icon={School} title="학교를 선택해 주세요" description="학교를 선택하면 날짜별 급식 메뉴를 확인할 수 있어요."/> : !mealRows.length ? <EmptyState icon={CalendarDays} title="등록된 급식이 없어요" description="해당 월에 나이스 급식 정보가 없을 수 있어요."/> : mealViewMode === "cards" ? (
+            <div className="meal-calendar-list">{mealCalendarCells.filter(cell => cell.inMonth && cell.meals.length).map(cell => <article className="meal-calendar-item" key={cell.iso}><strong>{cell.date.getMonth()+1}월 {cell.date.getDate()}일 · {["일","월","화","수","목","금","토"][cell.date.getDay()]}</strong><div>{["조식","중식","석식"].map(type => { const meal=cell.meals.find(item => item.mealType.includes(type)); return <div key={type}><b>{type}</b><p>{meal ? meal.menu : "정보 없음"}</p>{meal && meal.calories && <small>{meal.calories}</small>}</div>; })}</div></article>)}</div>
+          ) : (
+            <div className="calendar-grid meal-calendar-grid">
+              {["일","월","화","수","목","금","토"].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}
+              {mealCalendarCells.map(cell => <div key={cell.iso} className={"calendar-day"+(!cell.inMonth ? " outside-month" : "")+(cell.iso === todayISO() ? " today" : "")}>
+                <span className="calendar-day-number">{cell.date.getDate()}</span>
+                <div className="calendar-day-items">{["조식","중식","석식"].map(type => { const meal=cell.meals.find(item => item.mealType.includes(type)); return <div className="calendar-event meal-calendar-event" key={type}><b>{type}</b><span>{meal ? meal.menu : (cell.inMonth ? "정보 없음" : "")}</span></div>; })}</div>
+              </div>)}
+            </div>
+          )}
         </div>
       </section>}
 
