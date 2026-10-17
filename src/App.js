@@ -145,7 +145,7 @@ export default function App() {
     const first = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
     const start = new Date(first);
     start.setDate(first.getDate() - first.getDay());
-    return Array.from({ length: 42 }, (_, i) => {
+    const cells = Array.from({ length: 42 }, (_, i) => {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
       const iso = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
@@ -153,8 +153,46 @@ export default function App() {
         const from = item.start_date || item.due_date || "";
         const to = item.end_date || item.due_date || from;
         return from && from <= iso && iso <= to;
-      }).sort(compareAssessmentStart) };
+      }) };
     });
+
+    // Assign each assessment a stable vertical lane for the whole week.
+    // This prevents a continuation segment on a blank day from being crossed
+    // by another event that would otherwise move into a different row.
+    for (let week = 0; week < 6; week++) {
+      const weekCells = cells.slice(week * 7, week * 7 + 7);
+      const weekStart = weekCells[0].iso;
+      const weekEnd = weekCells[6].iso;
+      const eventsById = new Map();
+      weekCells.forEach(cell => cell.items.forEach(item => {
+        const from = item.start_date || item.due_date || "";
+        const to = item.end_date || item.due_date || from;
+        const clippedFrom = from < weekStart ? weekStart : from;
+        const clippedTo = to > weekEnd ? weekEnd : to;
+        if (!eventsById.has(String(item.id))) {
+          eventsById.set(String(item.id), { item, from: clippedFrom, to: clippedTo });
+        }
+      }));
+      const events = [...eventsById.values()].sort((a,b) =>
+        a.from.localeCompare(b.from) ||
+        b.to.localeCompare(a.to) ||
+        String(a.item.title || "").localeCompare(String(b.item.title || ""), "ko")
+      );
+      const laneEnds = [];
+      const lanes = new Map();
+      events.forEach(event => {
+        let lane = laneEnds.findIndex(end => end < event.from);
+        if (lane < 0) lane = laneEnds.length;
+        laneEnds[lane] = event.to;
+        lanes.set(String(event.item.id), lane);
+      });
+      weekCells.forEach(cell => {
+        cell.items = cell.items
+          .map(item => ({ ...item, _calendarLane: lanes.get(String(item.id)) ?? 0 }))
+          .sort((a,b) => a._calendarLane - b._calendarLane);
+      });
+    }
+    return cells;
   }, [calendarMonth, filteredAssessments]);
 
   const notify = (message, type = "success") => {
