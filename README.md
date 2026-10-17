@@ -12,10 +12,14 @@ client/
     ├── App.jsx                  # 화면 상태와 페이지 조립
     ├── styles.css               # 전역·반응형 스타일
     ├── components/
-    │   └── common/
-    │       ├── Modal.jsx        # 공통 모달
-    │       ├── Field.jsx        # 공통 폼 필드
-    │       └── EmptyState.jsx   # 빈 목록 안내
+    │   ├── common/
+    │   │   ├── Modal.jsx        # 공통 모달
+    │   │   ├── Field.jsx        # 공통 폼 필드
+    │   │   └── EmptyState.jsx   # 빈 목록 안내
+    │   ├── assessments/
+    │   │   └── AssessmentModal.jsx # 일정 등록·수정
+    │   └── setup/
+    │       └── SetupModal.jsx   # 학교·학급·과목 설정
     └── lib/
         ├── api.js               # API 요청, 오류 처리, 세션 쿠키
         └── date.js              # 날짜 표시·계산 유틸리티
