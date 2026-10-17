@@ -264,10 +264,27 @@ export default function App() {
   async function registerAdmin(event) {
     event.preventDefault(); setSaving(true);
     const form = new FormData(event.currentTarget);
+    if (form.get("password") !== form.get("confirmPassword")) {
+      notify("새 비밀번호가 서로 일치하지 않아요.", "error"); setSaving(false); return;
+    }
     try {
       await api("/api/admin/register", { method: "POST", body: JSON.stringify({ schoolId: form.get("schoolId"), registrationCode: form.get("registrationCode"), password: form.get("password") }) });
       setModal({ type: "adminLogin" });
       notify("관리자 등록이 완료됐어요. 설정한 비밀번호로 로그인해 주세요.");
+    } catch (error) { notify(error.message, "error"); }
+    finally { setSaving(false); }
+  }
+
+  async function changeAdminPassword(event) {
+    event.preventDefault(); setSaving(true);
+    const form = new FormData(event.currentTarget);
+    if (form.get("newPassword") !== form.get("confirmPassword")) {
+      notify("새 비밀번호가 서로 일치하지 않아요.", "error"); setSaving(false); return;
+    }
+    try {
+      await api("/api/admin/password", { method: "POST", body: JSON.stringify({ currentPassword: form.get("currentPassword"), newPassword: form.get("newPassword") }) });
+      setModal(null);
+      notify("관리자 비밀번호를 변경했어요.");
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
   }
@@ -364,7 +381,7 @@ export default function App() {
       </a>
       <div className="top-actions">
         <span className="account-name">{admin ? <><span className="avatar"><ShieldCheck size={14} /></span>{admin.schoolName} 관리자</> : "로그인 없이 일정 신청"}</span>
-        {admin ? <><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
+        {admin ? <><button className="button button-light" onClick={() => setModal({ type: "changeAdminPassword" })}>비밀번호 변경</button><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
       </div>
     </header>
 
@@ -453,7 +470,8 @@ export default function App() {
         <Field label="학교"><div className="main-school-search"><div className="main-school-search-row"><input value={regSchoolQuery} onChange={e => { setRegSchoolQuery(e.target.value); setRegSchool(null); setRegSchoolResults([]); setRegSchoolError(""); }} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchRegistrationSchools(); } }} placeholder="나이스 학교 이름 검색" /><button className="button button-dark" type="button" onClick={searchRegistrationSchools} disabled={regSchoolLoading}>{regSchoolLoading ? "검색 중…" : "검색"}</button></div>{regSchoolError && <small className="main-school-error">{regSchoolError}</small>}{regSchoolResults.length > 0 && <div className="main-school-results">{regSchoolResults.map((s,i) => <button type="button" key={s.officeCode+"-"+s.schoolCode+"-"+i} onClick={() => chooseRegistrationSchool(s)} disabled={saving}><strong>{s.name}</strong><small>{s.region}{s.schoolType ? " · "+s.schoolType : ""}</small></button>)}</div>}{regSchool && <small>선택한 학교: {regSchool.name} · {regSchool.region}</small>}</div><input type="hidden" name="schoolId" value={regSchool?.id || ""} /></Field>
         <Field label="일회용 등록 코드"><input name="registrationCode" required autoComplete="one-time-code" minLength="20" maxLength="24" /></Field>
         <Field label="새 관리자 비밀번호"><input name="password" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /><small>12자 이상으로 설정해 주세요.</small></Field>
-        <button className="button button-primary full-button" disabled={saving}>{saving ? "등록 중…" : "관리자 등록"} <ArrowRight size={16} /></button>
+        <Field label="비밀번호 확인"><input name="confirmPassword" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /></Field>
+        <button className="button button-primary full-button" disabled={saving || !regSchool}>{saving ? "등록 중…" : "관리자 등록"} <ArrowRight size={16} /></button>
       </form>
       <button className="button button-light full-button" type="button" onClick={() => { setRegSchool(null); setRegSchoolQuery(""); setRegSchoolResults([]); setRegSchoolError(""); setIssuedCode(""); setModal({ type: "bootstrapCode" }); }}>운영자용 최초 등록 코드 발급</button>
     </Modal>}
@@ -466,6 +484,16 @@ export default function App() {
         <button className="button button-primary full-button" disabled={saving || !regSchool}>{saving ? "발급 중…" : "최초 등록 코드 발급"} <ArrowRight size={16} /></button>
       </form>
       {issuedCode && <div className="registration-code-display"><strong>최초 등록 코드</strong><code>{issuedCode}</code><button className="button button-light" type="button" onClick={() => { navigator.clipboard?.writeText(issuedCode); notify("코드를 복사했어요."); }}>코드 복사</button></div>}
+    </Modal>}
+
+    {modal?.type === "changeAdminPassword" && <Modal title="관리자 비밀번호 변경" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)}>
+      <p className="modal-description">현재 비밀번호를 확인한 뒤 새 비밀번호를 설정해 주세요. 비밀번호는 12자 이상이어야 해요.</p>
+      <form className="modal-form" onSubmit={changeAdminPassword}>
+        <Field label="현재 비밀번호"><input name="currentPassword" type="password" required autoComplete="current-password" /></Field>
+        <Field label="새 비밀번호"><input name="newPassword" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /></Field>
+        <Field label="새 비밀번호 확인"><input name="confirmPassword" type="password" required minLength="12" maxLength="128" autoComplete="new-password" /></Field>
+        <button className="button button-primary full-button" disabled={saving}>{saving ? "변경 중…" : "비밀번호 변경"} <ArrowRight size={16} /></button>
+      </form>
     </Modal>}
 
     {modal?.type === "registrationCodes" && <Modal title="학교 등록 코드 관리" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)}>
