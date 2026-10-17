@@ -20,3 +20,7 @@
 .school-result>svg:last-child{flex:0 0 auto;color:#635bdf}
 .selected-school-note{display:flex;align-items:center;gap:5px;padding:10px 11px;border-radius:10px;background:#eef9f3;color:#328263;font-size:11px}
 .selected-school-note strong{color:#236d50}
+
+/* Keep select icons out of the text area: native select text starts at the field padding. */
+.select-wrap>svg:first-child{display:none}
+.select-wrap select{padding-left:13px!important;padding-right:34px!important}
