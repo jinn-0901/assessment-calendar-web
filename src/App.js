@@ -201,7 +201,22 @@ export default function App() {
   }, [grade, classes]);
 
   function openAssessment(item = null) {
-    setModal({ type: "assessment", item });
+    setModal({ type: "assessment", item, isNew: !item });
+  }
+
+  async function adminLogout() {
+    try {
+      await api("/api/admin/logout", { method: "POST" });
+    } catch (error) {
+      // A stale session should not prevent the local admin token from being cleared.
+    }
+    window.localStorage.removeItem("school_admin_token");
+    setAdmin(null);
+    setRequests([]);
+    setRegistrationCodes([]);
+    setIssuedCode("");
+    setModal(null);
+    notify("관리자 로그아웃했어요.");
   }
 
   async function searchLoginSchools() {
@@ -424,7 +439,7 @@ export default function App() {
       </a>
       <div className="top-actions">
         <span className="account-name">{admin ? <><span className="avatar"><ShieldCheck size={14} /></span>{admin.schoolName} 관리자</> : "로그인 없이 일정 신청"}</span>
-        {admin ? <><button className="button button-light" onClick={() => setModal({ type: "changeAdminPassword" })}>비밀번호 변경</button><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
+        {admin ? <><button className="button button-light" onClick={() => setModal({ type: "changeAdminPassword" })}>비밀번호 변경</button><button className="button button-light" onClick={openRegistrationCodes}><ShieldCheck size={16} /> 등록 코드</button><button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button><button className="button button-light" onClick={adminLogout}>로그아웃</button></> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
       </div>
     </header>
 
@@ -576,9 +591,9 @@ export default function App() {
       schools={schools}
       classes={classes}
       subjects={subjects}
-      defaultSchoolId={schoolId}
-      defaultClassId={classId}
-      defaultGrade={grade}
+      defaultSchoolId={modal.isNew ? "" : schoolId}
+      defaultClassId={modal.isNew ? "" : classId}
+      defaultGrade={modal.isNew ? "" : grade}
       saving={saving}
       onClose={() => setModal(null)}
       onSubmit={saveAssessment}
