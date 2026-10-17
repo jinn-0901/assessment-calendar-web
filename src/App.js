@@ -134,7 +134,7 @@ export default function App() {
 
 
   useEffect(() => {
-    if (mainView !== "academic" || !schoolId) return;
+    if (!["academic", "assessments"].includes(mainView) || !schoolId) return;
     let active = true;
     const from = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
     const to = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
@@ -651,7 +651,7 @@ export default function App() {
               {["일","월","화","수","목","금","토"].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}
               {calendarCells.map(cell => <div key={cell.iso} className={"calendar-day" + (!cell.inMonth ? " outside-month" : "") + (cell.iso === todayISO() ? " today" : "")}>
                 <span className="calendar-day-number">{cell.date.getDate()}</span>
-                <div className="calendar-day-items">{cell.items.map(item => <button type="button" className="calendar-event" key={item.id} title={item.title + " · " + item.subject_name} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{item.title}</span></button>)}</div>
+                <div className="calendar-day-items">{cell.items.map(item => <button type="button" className="calendar-event" key={"assessment-"+item.id} title={item.title + " · " + item.subject_name} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{item.title}</span></button>)}{academicEvents.filter(event => event.date === cell.iso.replace(/-/g, "")).map((event,index) => <div className="calendar-event" key={"academic-"+event.date+"-"+event.name+"-"+index} style={{background:"#e8f7ee",color:"#17663a",cursor:"default"}} title={event.details || event.name}><b>학사일정</b><span>{event.name}</span></div>)}</div>
               </div>)}
             </div>
           </div> : <div className="assessment-list">{filteredAssessments.map(item => {
