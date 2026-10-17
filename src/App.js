@@ -112,7 +112,6 @@ export default function App() {
   }, [grade, classes]);
 
   function openAssessment(item = null) {
-    if (!schools.length) { notify("먼저 학교를 등록해 주세요.", "error"); return; }
     setModal({ type: "assessment", item });
   }
 
@@ -237,7 +236,7 @@ export default function App() {
           <span className="private-note"><School size={14} /> 학교별 일정 공유</span>
         </div>
         <div className="select-grid">
-          <Field label="학교"><span className="select-wrap"><School size={17} /><select value={schoolId} onChange={e => { setSchoolId(e.target.value); setGrade(""); setClassId(""); }}><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select><ChevronDown size={15} /></span></Field>
+          <Field label="학교"><span className="select-wrap"><select value={schoolId} onChange={e => { setSchoolId(e.target.value); setGrade(""); setClassId(""); }}><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select><ChevronDown size={15} /></span></Field>
           <Field label="학년"><span className="select-wrap"><GraduationCap size={17} /><select value={grade} onChange={e => setGrade(e.target.value)} disabled={!grades.length}><option value="">학년 선택</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select><ChevronDown size={15} /></span></Field>
           <Field label="반"><span className="select-wrap"><Layers3 size={17} /><select value={classId} onChange={e => setClassId(e.target.value)} disabled={!classOptions.length}><option value="">반 선택</option>{classOptions.map(c => <option key={c.id} value={c.id}>{c.class_number}반</option>)}</select><ChevronDown size={15} /></span></Field>
         </div>
