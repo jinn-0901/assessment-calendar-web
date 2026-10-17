@@ -56,3 +56,40 @@
 :root[data-theme="dark"] .academic-card,:root[data-theme="dark"] .empty-state,:root[data-theme="dark"] .bottom-tip{background:#202231;color:#f1f2f8;border-color:#343747}
 :root[data-theme="dark"] footer{color:#a2a7ba}
 @media(max-width:600px){.theme-toggle{padding:9px 10px;font-size:11px}}
+
+/* Dark theme refinements */
+:root[data-theme="dark"] .selection-panel,
+:root[data-theme="dark"] .list-toolbar,
+:root[data-theme="dark"] .filter-box,
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] .calendar-toolbar,
+:root[data-theme="dark"] .calendar-nav,
+:root[data-theme="dark"] .meal-panel,
+:root[data-theme="dark"] .timetable-panel,
+:root[data-theme="dark"] .modal-card,
+:root[data-theme="dark"] .setup-modal,
+:root[data-theme="dark"] .tab-row,
+:root[data-theme="dark"] .selection-placeholder,
+:root[data-theme="dark"] .class-select-wrap select,
+:root[data-theme="dark"] .choice-card {background:#202231!important;color:#f1f2f8;border-color:#393c50}
+:root[data-theme="dark"] .modal-card h1,
+:root[data-theme="dark"] .modal-card h2,
+:root[data-theme="dark"] .modal-card h3,
+:root[data-theme="dark"] .selection-panel h2,
+:root[data-theme="dark"] .schedule-header h2,
+:root[data-theme="dark"] .assessment-content h3,
+:root[data-theme="dark"] .calendar-day-number {color:#f1f2f8}
+:root[data-theme="dark"] .calendar-event {color:#fff}
+:root[data-theme="dark"] .calendar-day-items {background:transparent}
+:root[data-theme="dark"] .choice-card.selected {background:#302b50!important;border-color:#756ce8;color:#dcd9ff}
+:root[data-theme="dark"] .tab-row button.active {background:#343149;color:#dedbff}
+:root[data-theme="dark"] .button:not(.button-light) {color:#fff}
+:root[data-theme="dark"] .button-light {border-color:#41455a}
+.theme-switch{display:inline-flex;align-items:center;gap:9px;padding:7px 10px;border:0;background:transparent;color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}
+.theme-switch-track{position:relative;display:inline-flex;align-items:center;width:39px;height:23px;padding:3px;border-radius:999px;background:#c7c9d5;transition:background .18s ease}
+.theme-switch-thumb{display:block;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transform:translateX(0);transition:transform .18s ease}
+.theme-switch.is-on .theme-switch-track{background:#635bdf}
+.theme-switch.is-on .theme-switch-thumb{transform:translateX(16px)}
+.theme-switch:focus-visible{outline:2px solid #8c85e2;outline-offset:2px;border-radius:10px}
+:root[data-theme="dark"] .theme-switch{color:#f1f2f8}
+@media(max-width:540px){.theme-switch{gap:5px;padding:6px 4px;font-size:10px}.theme-switch-track{width:34px;height:21px}.theme-switch-thumb{width:15px;height:15px}.theme-switch.is-on .theme-switch-thumb{transform:translateX(13px)}}
