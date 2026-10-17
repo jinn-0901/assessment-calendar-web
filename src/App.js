@@ -560,7 +560,36 @@ export default function App() {
       {mainView === "timetable" && <section className="schedule-area">
         <div className="schedule-header"><div><span className="section-kicker">NEIS CLASS TIMETABLE</span><h2>반별 시간표</h2><p>{selectedSchool && selectedClass ? `${selectedSchool.name} · ${grade}학년 ${selectedClass.class_number}반` : "학교, 학년, 반을 선택해 주세요."}</p></div></div>
         <div className="timetable-panel"><Field label="날짜"><input type="date" value={timetableDate} onChange={e => setTimetableDate(e.target.value)} /></Field>
-          {timetableLoading ? <div className="loading-state">나이스 주간 시간표를 불러오고 있어요…</div> : !schoolId || !grade || !selectedClass ? <EmptyState icon={School} title="학급을 선택해 주세요" description="위에서 학교와 학년, 반을 선택하면 시간표를 볼 수 있어요."/> : timetableRows.length ? <div className="weekly-timetable">{timetableRows.map(day => <section className="weekly-timetable-day" key={day.date}><h3>{day.date.slice(4,6)}월 {day.date.slice(6,8)}일 · {["일","월","화","수","목","금","토"][new Date(day.date.slice(0,4)+"-"+day.date.slice(4,6)+"-"+day.date.slice(6,8)+"T12:00:00").getDay()]}요일</h3>{day.lessons.length ? <div className="timetable-grid">{day.lessons.map(row => <article className="timetable-period" key={row.period}><span>{row.period}교시</span><strong>{row.subject || "과목 미등록"}</strong>{row.classroom && <small>{row.classroom}</small>}</article></div> : <p>등록된 시간표가 없어요.</p>}</section>)}</div> : <EmptyState icon={BookOpen} title="시간표가 없어요" description="선택한 주의 시간표가 나이스에 등록되어 있는지 확인해 주세요."/>}
+          {timetableLoading ? (
+            <div className="loading-state">나이스 주간 시간표를 불러오고 있어요…</div>
+          ) : !schoolId || !grade || !selectedClass ? (
+            <EmptyState icon={School} title="학급을 선택해 주세요" description="위에서 학교와 학년, 반을 선택하면 시간표를 볼 수 있어요." />
+          ) : timetableRows.length ? (
+            <div className="weekly-timetable">
+              {timetableRows.map(day => (
+                <section className="weekly-timetable-day" key={day.date}>
+                  <h3>
+                    {day.date.slice(4, 6)}월 {day.date.slice(6, 8)}일 · {["일", "월", "화", "수", "목", "금", "토"][new Date(day.date.slice(0, 4) + "-" + day.date.slice(4, 6) + "-" + day.date.slice(6, 8) + "T12:00:00").getDay()]}요일
+                  </h3>
+                  {day.lessons.length ? (
+                    <div className="timetable-grid">
+                      {day.lessons.map(row => (
+                        <article className="timetable-period" key={row.period}>
+                          <span>{row.period}교시</span>
+                          <strong>{row.subject || "과목 미등록"}</strong>
+                          {row.classroom && <small>{row.classroom}</small>}
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>등록된 시간표가 없어요.</p>
+                  )}
+                </section>
+              ))}
+            </div>
+          ) : (
+            <EmptyState icon={BookOpen} title="시간표가 없어요" description="선택한 주의 시간표가 나이스에 등록되어 있는지 확인해 주세요." />
+          )}
         </div>
       </section>}
 
