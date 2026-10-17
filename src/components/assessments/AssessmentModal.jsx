@@ -4,7 +4,7 @@ import Modal from "../common/Modal.jsx";
 import Field from "../common/Field.jsx";
 import { api } from "../../lib/api.js";
 
-export default function AssessmentModal({ item, schools, classes, subjects, defaultSchoolId, defaultClassId, defaultGrade, saving, onClose, onSubmit, loadClasses, loadSubjects }) {
+export default function AssessmentModal({ item, schools, classes, subjects, defaultSchoolId, defaultClassId, defaultGrade, saving, onClose, onSubmit, onDelete, loadClasses, loadSubjects }) {
   const [chosenSchool, setChosenSchool] = useState(String(item?.school_id || defaultSchoolId || ""));
   const [availableClasses, setAvailableClasses] = useState(classes);
   const [availableSubjects, setAvailableSubjects] = useState(subjects);
@@ -158,6 +158,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       <Field label="세부 내용 (선택)"><textarea name="details" defaultValue={item?.details || ""} maxLength="3000" rows="3" placeholder="준비물, 범위, 제출 방법 등을 적어 주세요." /></Field>
       {error && <p className="inline-error">{error}</p>}
       <button className="button button-primary full-button" disabled={saving}>{saving ? "저장 중…" : "일정 저장하기"} <ArrowRight size={16} /></button>
+      {item && <button className="button button-light full-button" type="button" disabled={saving} onClick={() => onDelete(item)}>일정 삭제하기</button>}
     </form>
   </Modal>;
 }
