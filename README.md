@@ -30,7 +30,7 @@ npm start
 
 ## Render 배포
 - Runtime: Node
-- Build command: `npm install && npm run build`
+- Build command: `npm install --include=dev && npm run build`
 - Start command: `npm start`
 
 Render PostgreSQL을 만든 뒤 SQL 실행 도구에서 `schema.sql`을 실행하세요. 웹 서비스와 DB는 같은 리전에 배치하고 가능하면 내부 데이터베이스 URL을 사용하세요.
