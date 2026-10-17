@@ -174,7 +174,7 @@ export default function App() {
     const form = new FormData(formElement);
     try {
       if (kind === "school") {
-        const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: form.get("name"), region: form.get("region") }) });
+        const data = await api("/api/schools", { method: "POST", body: JSON.stringify({ name: form.get("name"), region: form.get("region"), officeCode: form.get("officeCode"), schoolCode: form.get("schoolCode") }) });
         await refreshSchools(String(data.school.id));
         setSchoolId(String(data.school.id));
         notify("학교를 등록했어요.");
