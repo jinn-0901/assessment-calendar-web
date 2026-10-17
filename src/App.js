@@ -186,6 +186,18 @@ export default function App() {
       title: form.get("title"), dueDate: form.get("dueDate"), details: form.get("details")
     };
     try {
+      const subjectName = String(form.get("subjectName") || "").trim();
+      if (!payload.subjectId) {
+        if (!subjectName) throw new Error("과목명을 입력해 주세요.");
+        const schoolForSubject = String(form.get("schoolId") || schoolId);
+        const subjectData = await api(`/api/schools/${schoolForSubject}/subjects`);
+        const existingSubject = subjectData.subjects.find(s => s.name.trim().toLowerCase() === subjectName.toLowerCase());
+        if (existingSubject) payload.subjectId = String(existingSubject.id);
+        else {
+          const created = await api("/api/subjects", { method: "POST", body: JSON.stringify({ schoolId: schoolForSubject, name: subjectName }) });
+          payload.subjectId = String(created.subject.id);
+        }
+      }
       const data = await api(id ? `/api/assessments/${id}` : "/api/assessments", {
         method: id ? "PUT" : "POST", body: JSON.stringify(payload)
       });
