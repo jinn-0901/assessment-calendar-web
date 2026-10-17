@@ -16,7 +16,44 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
   const [neisGrades, setNeisGrades] = useState([]);
   const [neisClasses, setNeisClasses] = useState([]);
   const [neisLoading, setNeisLoading] = useState(false);
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [schoolResults, setSchoolResults] = useState([]);
+  const [schoolSearching, setSchoolSearching] = useState(false);
+  const [schoolLabel, setSchoolLabel] = useState(schools.find(s => String(s.id) === String(item?.school_id || defaultSchoolId || ""))?.name || "");
   const grades = neisGrades;
+
+  async function searchNeisSchools() {
+    const q = schoolQuery.trim();
+    if (q.length < 2) { setError("학교 이름을 두 글자 이상 입력해 주세요."); return; }
+    setSchoolSearching(true); setError("");
+    try {
+      const data = await api("/api/neis/schools?q=" + encodeURIComponent(q));
+      setSchoolResults(data.schools || []);
+      if (!data.schools?.length) setError("검색 결과가 없어요. 학교 이름을 확인해 주세요.");
+    } catch (e) { setError(e.message); setSchoolResults([]); }
+    finally { setSchoolSearching(false); }
+  }
+
+  async function selectNeisSchool(school) {
+    setNeisLoading(true); setError("");
+    try {
+      const data = await api("/api/schools", { method: "POST", body: JSON.stringify({
+        name: school.name,
+        region: [school.region, school.address].filter(Boolean).join(" · ").slice(0, 120),
+        officeCode: school.officeCode,
+        schoolCode: school.schoolCode
+      }) });
+      const id = String(data.school.id);
+      setChosenSchool(id);
+      setSchoolLabel(school.name);
+      setSchoolQuery("");
+      setSchoolResults([]);
+      setChosenGrade("");
+      setChosenClass("");
+      setSubjectName("");
+    } catch (e) { setError(e.message); }
+    finally { setNeisLoading(false); }
+  }
 
   useEffect(() => {
     let active = true;
@@ -82,7 +119,19 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
     <p className="modal-description">학급 친구들이 확인할 수 있도록 내용을 정확히 입력해 주세요.</p>
     <form className="modal-form" onSubmit={event => { setError(""); onSubmit(event); }}>
       <input type="hidden" name="id" value={item?.id || ""} />
-      <Field label="학교"><select name="schoolId" value={chosenSchool} onChange={e => { setChosenSchool(e.target.value); setChosenGrade(""); setChosenClass(""); setError(""); }} required><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
+      <Field label="학교">
+        <div className="school-search-row">
+          <input aria-label="학교 이름 검색" value={schoolQuery} onChange={e => setSchoolQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchNeisSchools(); } }} placeholder={schoolLabel || "나이스 학교 이름 검색"} />
+          <button type="button" className="button button-secondary" onClick={searchNeisSchools} disabled={schoolSearching || schoolQuery.trim().length < 2}>{schoolSearching ? "검색 중…" : "검색"}</button>
+        </div>
+        {schoolResults.length > 0 && <div className="school-search-results" role="listbox" aria-label="학교 검색 결과">
+          {schoolResults.map((school, index) => <button type="button" key={school.schoolCode || school.name + index} className="school-search-result" onClick={() => selectNeisSchool(school)}>
+            <strong>{school.name}</strong><span>{[school.region, school.schoolType, school.address].filter(Boolean).join(" · ")}</span>
+          </button>)}
+        </div>}
+        <input type="hidden" name="schoolId" value={chosenSchool} />
+        {schoolLabel && <p className="field-hint">선택된 학교: {schoolLabel}</p>}
+      </Field>
       <div className="form-row">
         <Field label="학년"><select value={chosenGrade} onChange={e => { setChosenGrade(e.target.value); setChosenClass(""); }} disabled={!chosenSchool || neisLoading || !grades.length} required><option value="">{!chosenSchool ? "학교 먼저 선택" : neisLoading ? "불러오는 중…" : "학년 선택"}</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select></Field>
         <Field label="반"><select value={availableClasses.find(c => String(c.id) === String(chosenClass))?.class_number || ""} onChange={e => chooseClass(e.target.value)} disabled={!chosenSchool || !chosenGrade || neisLoading || !neisClasses.length} required><option value="">{!chosenGrade ? "학년 먼저 선택" : neisLoading ? "불러오는 중…" : "반 선택"}</option>{neisClasses.map(label => <option key={label} value={label}>{/^\\d+$/.test(String(label)) ? label + "반" : label}</option>)}</select><input type="hidden" name="classId" value={chosenClass} /></Field>
