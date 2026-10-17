@@ -378,7 +378,7 @@ export default function App() {
     const id = form.get("id");
     const payload = {
       classId: form.get("classId"), subjectId: form.get("subjectId"),
-      title: form.get("title"), dueDate: form.get("dueDate"), dueTime: form.get("dueTime") || null, details: form.get("details")
+      title: form.get("title"), startDate: form.get("startDate"), endDate: form.get("endDate"), startTime: form.get("startTime") || null, endTime: form.get("endTime") || null, details: form.get("details")
     };
     try {
       const subjectName = String(form.get("subjectName") || "").trim();
@@ -408,7 +408,6 @@ export default function App() {
     finally { setSaving(false); }
   }
 
-  async function deleteAssessment(item) { notify("일정 삭제는 학교 관리자에게 요청해 주세요.", "error"); }
 
   async function submitSetup(event, kind) {
     event.preventDefault(); setSaving(true);
@@ -526,7 +525,7 @@ export default function App() {
             const date = dateParts(item.due_date);
             return <article className="assessment-item" key={item.id}>
               <div className="date-tile"><span>{date.month}월</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
-              <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span><span className="date-tag">{item.author === "학교 관리자" ? "관리자 등록" : "학생 등록"}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className={"meta-avatar " + (item.author === "학교 관리자" ? "admin-author" : "student-author")}>{item.author === "학교 관리자" ? "관" : "학"}</span>{item.author === "학교 관리자" ? "학교 관리자 등록" : "학생 등록"}{item.due_time && <span className="item-time"> · {String(item.due_time).slice(0,5)}</span>}</div></div>
+              <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span><span className="date-tag">{item.author === "학교 관리자" ? "관리자 등록" : "학생 등록"}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className={"meta-avatar " + (item.author === "학교 관리자" ? "admin-author" : "student-author")}>{item.author === "학교 관리자" ? "관" : "학"}</span>{item.author === "학교 관리자" ? "학교 관리자 등록" : "학생 등록"}{(item.start_date && item.end_date && item.start_date !== item.end_date) ? <span className="item-time"> · {prettyDate(item.start_date)}{item.start_time ? " " + String(item.start_time).slice(0,5) : ""} ~ {prettyDate(item.end_date)}{item.end_time ? " " + String(item.end_time).slice(0,5) : ""}</span> : (item.start_time || item.end_time) ? <span className="item-time"> · {item.start_time ? String(item.start_time).slice(0,5) : "시간 미정"} ~ {item.end_time ? String(item.end_time).slice(0,5) : "시간 미정"}</span> : null}</div></div>
               <div className="item-actions"><button className="icon-button" title={admin ? "일정 수정" : "수정 신청"} onClick={() => openAssessment(item)}><Pencil size={16} /></button>{admin && <button className="icon-button delete-action" title="일정 삭제" onClick={() => deleteAssessment(item)}><Trash2 size={16} /></button>}</div>
             </article>;
           })}</div>
