@@ -586,7 +586,7 @@ export default function App() {
                 <thead><tr><th className="period-label">교시</th>{timetableRows.map(day => <th key={day.date}>{["일","월","화","수","목","금","토"][new Date(day.date.slice(0,4)+"-"+day.date.slice(4,6)+"-"+day.date.slice(6,8)+"T12:00:00").getDay()]}<br/>{Number(day.date.slice(4,6))}/{Number(day.date.slice(6,8))}</th>)}</tr></thead>
                 <tbody>{Array.from({length:Math.max(0,...timetableRows.map(day=>day.lessons.length ? Math.max(...day.lessons.map(row=>row.period)) : 0))},(_,i)=>i+1).map(period=><tr key={period}><td className="period-label">{period}교시</td>{timetableRows.map(day=>{const row=day.lessons.find(item=>item.period===period);return <td key={day.date+"-"+period}>{row?<><strong>{row.subject||"과목 미등록"}</strong>{row.classroom&&<small>{row.classroom}</small>}</>:<span style={{color:"#c0c5ce"}}>—</span>}</td>})}</tr>)}</tbody>
               </table>
-            </div>      </div>
+            </div>
           ) : (
             <EmptyState icon={BookOpen} title="시간표가 없어요" description="선택한 주의 시간표가 나이스에 등록되어 있는지 확인해 주세요." />
           )}
