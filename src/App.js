@@ -46,13 +46,18 @@ export default function App() {
   const [academicEvents, setAcademicEvents] = useState([]);
   const [academicLoading, setAcademicLoading] = useState(false);
   const visibleAcademicEvents = useMemo(() => academicEvents.filter(event => {
-    const hasGradeFlags = event.grade1 || event.grade2 || event.grade3;
+    const isYes = value => value === true || String(value ?? "").trim().toUpperCase() === "Y" || String(value ?? "").trim() === "true";
+    const grade1 = isYes(event.grade1);
+    const grade2 = isYes(event.grade2);
+    const grade3 = isYes(event.grade3);
+    const hasGradeFlags = grade1 || grade2 || grade3;
     if (!hasGradeFlags) return true;
-    if (String(grade) === "1") return event.grade1;
-    if (String(grade) === "2") return event.grade2;
-    if (String(grade) === "3") return event.grade3;
+    const selectedGrade = String(selectedClass?.grade ?? grade);
+    if (selectedGrade === "1") return grade1;
+    if (selectedGrade === "2") return grade2;
+    if (selectedGrade === "3") return grade3;
     return true;
-  }), [academicEvents, grade]);
+  }), [academicEvents, grade, selectedClass?.grade]);
   const [timetableDate, setTimetableDate] = useState(() => todayISO());
   const [timetableRows, setTimetableRows] = useState([]);
   const [mealMonth, setMealMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
