@@ -93,3 +93,98 @@
 .theme-switch:focus-visible{outline:2px solid #8c85e2;outline-offset:2px;border-radius:10px}
 :root[data-theme="dark"] .theme-switch{color:#f1f2f8}
 @media(max-width:540px){.theme-switch{gap:5px;padding:6px 4px;font-size:10px}.theme-switch-track{width:34px;height:21px}.theme-switch-thumb{width:15px;height:15px}.theme-switch.is-on .theme-switch-thumb{transform:translateX(13px)}}
+
+
+/* Dark theme cleanup: keep surfaces, typography, and controls consistent. */
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .hero-copy,
+:root[data-theme="dark"] .content,
+:root[data-theme="dark"] .main-content,
+:root[data-theme="dark"] .page-content,
+:root[data-theme="dark"] .schedule-header,
+:root[data-theme="dark"] .calendar-toolbar,
+:root[data-theme="dark"] .calendar-nav,
+:root[data-theme="dark"] .calendar-legend,
+:root[data-theme="dark"] .assessment-list,
+:root[data-theme="dark"] .list-toolbar,
+:root[data-theme="dark"] .filter-box,
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] .selection-panel,
+:root[data-theme="dark"] .meal-panel,
+:root[data-theme="dark"] .timetable-panel,
+:root[data-theme="dark"] .modal-card,
+:root[data-theme="dark"] .setup-modal,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .form-section {
+  color: #f1f2f8;
+}
+:root[data-theme="dark"] .stat-card,
+:root[data-theme="dark"] .schedule-area,
+:root[data-theme="dark"] .calendar-panel,
+:root[data-theme="dark"] .assessment-item,
+:root[data-theme="dark"] .approval-card,
+:root[data-theme="dark"] .academic-card,
+:root[data-theme="dark"] .empty-state,
+:root[data-theme="dark"] .bottom-tip,
+:root[data-theme="dark"] .selection-panel,
+:root[data-theme="dark"] .list-toolbar,
+:root[data-theme="dark"] .filter-box,
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] .calendar-toolbar,
+:root[data-theme="dark"] .calendar-nav,
+:root[data-theme="dark"] .meal-panel,
+:root[data-theme="dark"] .timetable-panel,
+:root[data-theme="dark"] .modal-card,
+:root[data-theme="dark"] .setup-modal,
+:root[data-theme="dark"] .modal-content,
+:root[data-theme="dark"] .form-section {
+  background-color: #202231;
+  border-color: #383b50;
+}
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4,
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] .field-label,
+:root[data-theme="dark"] .assessment-content,
+:root[data-theme="dark"] .calendar-day-number,
+:root[data-theme="dark"] .brand-name {
+  color: #f1f2f8;
+}
+:root[data-theme="dark"] p,
+:root[data-theme="dark"] small,
+:root[data-theme="dark"] .muted,
+:root[data-theme="dark"] .helper-text,
+:root[data-theme="dark"] .hero-copy > p,
+:root[data-theme="dark"] .section-subtitle {
+  color: #aeb3c7;
+}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] .class-select-wrap select {
+  background-color: #191b28 !important;
+  color: #f1f2f8 !important;
+  border-color: #45495d !important;
+}
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+  color: #858ba2;
+}
+:root[data-theme="dark"] .choice-card {
+  background-color: #252739 !important;
+  color: #e5e7f2;
+}
+:root[data-theme="dark"] .calendar-day.outside-month {
+  background-color: #191b26;
+}
+:root[data-theme="dark"] .calendar-day.today {
+  background-color: #29263f;
+}
+:root[data-theme="dark"] .theme-switch-track {
+  background: #55596d;
+}
+:root[data-theme="dark"] .theme-switch.is-on .theme-switch-track {
+  background: #756ce8;
+}
