@@ -1,26 +1,16 @@
 {
-  "name": "assessment-calendar",
+  "name": "assessment-calendar-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Multi-school assessment schedule web app",
-  "main": "src/server.js",
+  "description": "React frontend for the Moa assessment calendar",
   "scripts": {
-    "start": "node src/server.js",
-    "build": "node scripts/build.js",
-    "dev": "npm run build && node src/server.js"
+    "build": "node scripts/build.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "connect-pg-simple": "^10.0.0",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
-    "express-session": "^1.18.1",
-    "helmet": "^8.0.0",
     "lucide-react": "^0.468.0",
-    "pg": "^8.13.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
