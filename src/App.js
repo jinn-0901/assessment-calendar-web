@@ -45,6 +45,8 @@ export default function App() {
   const [mainView, setMainView] = useState("assessments");
   const [academicEvents, setAcademicEvents] = useState([]);
   const [academicLoading, setAcademicLoading] = useState(false);
+  const selectedSchool = schools.find(s => String(s.id) === String(schoolId));
+  const selectedClass = classes.find(c => String(c.id) === String(classId));
   const visibleAcademicEvents = useMemo(() => academicEvents.filter(event => {
     const isYes = value => value === true || String(value ?? "").trim().toUpperCase() === "Y" || String(value ?? "").trim() === "true";
     const grade1 = isYes(event.grade1);
@@ -101,8 +103,6 @@ export default function App() {
     return () => { active = false; };
   }, [schoolId, grade]);
 
-  const selectedSchool = schools.find(s => String(s.id) === String(schoolId));
-  const selectedClass = classes.find(c => String(c.id) === String(classId));
   const grades = [...new Set(classes.map(c => c.grade))].sort((a, b) => a - b);
   const classOptions = classes.filter(c => String(c.grade) === String(grade));
   const subjectNames = [...new Set(assessments.map(a => a.subject_name))].sort();
