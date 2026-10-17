@@ -121,7 +121,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       <input type="hidden" name="id" value={item?.id || ""} />
       <Field label="학교">
         <div className="school-search-row">
-          <input aria-label="학교 이름 검색" value={schoolQuery} onChange={e => setSchoolQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchNeisSchools(); } }} placeholder={schoolLabel || "나이스 학교 이름 검색"} />
+          <input aria-label="학교 이름 검색" value={schoolQuery} onChange={e => setSchoolQuery(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); searchNeisSchools(); } }} placeholder={schoolLabel || "학교 이름 검색"} />
           <button type="button" className="button button-secondary" onClick={searchNeisSchools} disabled={schoolSearching || schoolQuery.trim().length < 2}>{schoolSearching ? "검색 중…" : "검색"}</button>
         </div>
         {schoolResults.length > 0 && <div className="school-search-results" role="listbox" aria-label="학교 검색 결과">
