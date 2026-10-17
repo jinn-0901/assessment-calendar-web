@@ -587,8 +587,6 @@ export default function App() {
             </article>;
           })}</div>
         }
-      </section>
-
       </section>}
 
       <section className="bottom-tip"><div className="tip-icon"><CircleHelp size={20} /></div><div><strong>일정이 잘못 등록되어 있나요?</strong><p>학생이 신청한 일정은 관리자 승인 후 공개되고, 학교 관리자가 직접 등록한 일정은 즉시 공개돼요.</p></div></section>
