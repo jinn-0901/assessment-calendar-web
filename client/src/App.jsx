@@ -5,7 +5,7 @@ import {
   BookOpen, Pencil, Trash2, SlidersHorizontal, School, Layers3
 } from "lucide-react";
 
-const API_BASE_URL = (process.env.API_BASE_URL || "").replace(/\\/$/, "");
+const API_BASE_URL = (process.env.API_BASE_URL || "").replace(/\/$/, "");
 
 async function api(url, options = {}) {
   const response = await fetch(`${API_BASE_URL}${url}`, {
