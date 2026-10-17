@@ -47,19 +47,9 @@ export default function App() {
   const [academicLoading, setAcademicLoading] = useState(false);
   const selectedSchool = schools.find(s => String(s.id) === String(schoolId));
   const selectedClass = classes.find(c => String(c.id) === String(classId));
-  const visibleAcademicEvents = useMemo(() => academicEvents.filter(event => {
-    const isYes = value => value === true || String(value ?? "").trim().toUpperCase() === "Y" || String(value ?? "").trim() === "true";
-    const grade1 = isYes(event.grade1);
-    const grade2 = isYes(event.grade2);
-    const grade3 = isYes(event.grade3);
-    const hasGradeFlags = grade1 || grade2 || grade3;
-    if (!hasGradeFlags) return true;
-    const selectedGrade = String(selectedClass?.grade ?? grade);
-    if (selectedGrade === "1") return grade1;
-    if (selectedGrade === "2") return grade2;
-    if (selectedGrade === "3") return grade3;
-    return true;
-  }), [academicEvents, grade, selectedClass?.grade]);
+  // NEIS 학사일정의 학년별 적용 플래그가 누락되거나 일관되지 않은 학교가 있어
+  // 플래그만으로 일정을 숨기지 않고, 해당 학교·기간에서 받은 일정을 모두 표시한다.
+  const visibleAcademicEvents = useMemo(() => academicEvents, [academicEvents]);
   const [timetableDate, setTimetableDate] = useState(() => todayISO());
   const [timetableRows, setTimetableRows] = useState([]);
   const [mealMonth, setMealMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
