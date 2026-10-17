@@ -101,7 +101,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
   }, [chosenSchool, chosenGrade]);
 
   async function chooseClass(label) {
-    const number = String(label).match(/\\d+/)?.[0] || "";
+    const number = String(label).match(/\d+/)?.[0] || "";
     if (!number) return;
     try {
       setError("");
@@ -134,7 +134,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       </Field>
       <div className="form-row">
         <Field label="학년"><select value={chosenGrade} onChange={e => { setChosenGrade(e.target.value); setChosenClass(""); }} disabled={!chosenSchool || neisLoading || !grades.length} required><option value="">{!chosenSchool ? "학교 먼저 선택" : neisLoading ? "불러오는 중…" : "학년 선택"}</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select></Field>
-        <Field label="반"><select value={availableClasses.find(c => String(c.id) === String(chosenClass))?.class_number || ""} onChange={e => chooseClass(e.target.value)} disabled={!chosenSchool || !chosenGrade || neisLoading || !neisClasses.length} required><option value="">{!chosenGrade ? "학년 먼저 선택" : neisLoading ? "불러오는 중…" : "반 선택"}</option>{neisClasses.map(label => <option key={label} value={label}>{/^\\d+$/.test(String(label)) ? label + "반" : label}</option>)}</select><input type="hidden" name="classId" value={chosenClass} /></Field>
+        <Field label="반"><select value={availableClasses.find(c => String(c.id) === String(chosenClass))?.class_number || ""} onChange={e => chooseClass(e.target.value)} disabled={!chosenSchool || !chosenGrade || neisLoading || !neisClasses.length} required><option value="">{!chosenGrade ? "학년 먼저 선택" : neisLoading ? "불러오는 중…" : "반 선택"}</option>{neisClasses.map(label => <option key={label} value={label}>{/^\d+$/.test(String(label)) ? label + "반" : label}</option>)}</select><input type="hidden" name="classId" value={chosenClass} /></Field>
       </div>
       <Field label="과목"><input name="subjectName" value={subjectName || (availableSubjects.find(s => String(s.id) === chosenSubject)?.name || "")} onChange={e => { setSubjectName(e.target.value); setChosenSubject(""); }} required maxLength="100" placeholder="예: 국어, 수학, 영어" /></Field>
       <Field label="수행평가 제목"><input name="title" defaultValue={item?.title || ""} maxLength="180" required placeholder="예: 수학 탐구 보고서" /></Field>
