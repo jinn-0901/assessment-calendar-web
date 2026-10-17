@@ -1,49 +1,41 @@
-# 모아 — 수행평가 통합 일정표 (웹)
+# 모아 — 수행평가 통합 일정표
 
-React 기반 프런트엔드입니다. API 서버는 별도 저장소 `jinn-0901/assessment-calendar-server`에서 관리합니다. Vite 대신 esbuild를 사용합니다.
+React 기반 프런트엔드입니다. 화면 진입은 `public/index.html`, React 실행은 `src/index.js`에서 시작합니다. API 서버는 별도 저장소 `jinn-0901/assessment-calendar-server`에서 관리합니다.
 
-## 파일 구성
+## 파일 구조
 
 ```text
-client/
-├── index.html
-└── src/
-    ├── main.jsx                 # React 진입점
-    ├── App.jsx                  # 화면 상태와 페이지 조립
-    ├── styles.css               # 전역·반응형 스타일
-    ├── components/
-    │   ├── common/
-    │   │   ├── Modal.jsx        # 공통 모달
-    │   │   ├── Field.jsx        # 공통 폼 필드
-    │   │   └── EmptyState.jsx   # 빈 목록 안내
-    │   ├── assessments/
-    │   │   └── AssessmentModal.jsx # 일정 등록·수정
-    │   └── setup/
-    │       └── SetupModal.jsx   # 학교·학급·과목 설정
-    └── lib/
-        ├── api.js               # API 요청, 오류 처리, 세션 쿠키
-        └── date.js              # 날짜 표시·계산 유틸리티
-scripts/
-└── build.js                     # esbuild 번들 및 dist 생성
+public/
+└── index.html
+src/
+├── index.js
+├── App.js
+├── styles.css
+├── components/
+│   ├── common/
+│   │   ├── Modal.jsx
+│   │   ├── Field.jsx
+│   │   └── EmptyState.jsx
+│   ├── assessments/
+│   │   └── AssessmentModal.jsx
+│   └── setup/
+│       └── SetupModal.jsx
+└── lib/
+    ├── api.js
+    └── date.js
 ```
 
-공통 UI는 `components/common`, 재사용 로직은 `lib`에 둡니다. 화면 기능이 늘어나면 일정·관리자 기능도 기능별 폴더로 분리하는 방식으로 확장합니다.
+## 로컬 실행
 
-## 빌드 설정
+Node.js 18 이상에서 `npm install` 후 `npm start`를 실행합니다. 개발 서버는 보통 `http://localhost:3000`에서 열립니다.
 
-- Node.js: 20 이상
-- Build command: `npm install --include=dev && npm run build`
-- Output directory: `dist`
-- Environment variable: `API_BASE_URL` = 배포한 백엔드의 HTTPS 주소 (끝에 `/` 없이)
+## Netlify 설정
 
-## 로컬 빌드
+- Build command: `npm run build`
+- Publish directory: `build`
+- Environment variable: `REACT_APP_API_BASE_URL` = 백엔드 HTTPS 주소 (끝에 `/` 없이)
 
-```bash
-npm install
-npm run build
-```
-
-빌드 결과는 `dist/`에 생성됩니다.
+`npm start`는 로컬 개발용이고 Netlify는 정적 파일을 만들기 위해 `npm run build`를 실행합니다. 백엔드가 아직 연결되지 않은 경우 화면은 열리지만 학교·학급·일정 데이터를 불러오려면 API 서버가 필요합니다.
 
 ## 기능
 
