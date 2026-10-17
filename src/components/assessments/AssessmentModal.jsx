@@ -10,6 +10,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
   const [chosenGrade, setChosenGrade] = useState(String(item?.grade || defaultGrade || ""));
   const [chosenClass, setChosenClass] = useState(String(item?.class_id || defaultClassId || ""));
   const [chosenSubject, setChosenSubject] = useState(String(item?.subject_id || ""));
+  const [subjectName, setSubjectName] = useState("");
   const [error, setError] = useState("");
   const filteredClasses = availableClasses.filter(c => String(c.grade) === chosenGrade);
   const grades = [...new Set(availableClasses.map(c => c.grade))].sort((a,b) => a-b);
@@ -23,7 +24,8 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       const sameGrade = cs.filter(c => String(c.grade) === nextGrade);
       const nextClass = String(item?.class_id || chosenClass || sameGrade[0]?.id || "");
       setChosenClass(sameGrade.some(c => String(c.id) === nextClass) ? nextClass : String(sameGrade[0]?.id || ""));
-      setChosenSubject(String(item?.subject_id || ss[0]?.id || ""));
+      setChosenSubject(String(item?.subject_id || ""));
+      setSubjectName(item?.subject_name || "");
     }).catch(e => setError(e.message));
   }, [chosenSchool]);
 
@@ -36,7 +38,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
         <Field label="학년"><select value={chosenGrade} onChange={e => { setChosenGrade(e.target.value); const next = availableClasses.find(c => String(c.grade) === e.target.value); setChosenClass(String(next?.id || "")); }} required><option value="">학년</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select></Field>
         <Field label="반"><select name="classId" value={chosenClass} onChange={e => setChosenClass(e.target.value)} required><option value="">반 선택</option>{filteredClasses.map(c => <option key={c.id} value={c.id}>{c.class_number}반</option>)}</select></Field>
       </div>
-      <Field label="과목"><select name="subjectId" value={chosenSubject} onChange={e => setChosenSubject(e.target.value)} required><option value="">과목 선택</option>{availableSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></Field>
+      <Field label="과목"><input name="subjectName" value={subjectName || (availableSubjects.find(s => String(s.id) === chosenSubject)?.name || "")} onChange={e => { setSubjectName(e.target.value); setChosenSubject(""); }} required maxLength="100" placeholder="예: 국어, 수학, 영어" /></Field>
       <Field label="수행평가 제목"><input name="title" defaultValue={item?.title || ""} maxLength="180" required placeholder="예: 수학 탐구 보고서" /></Field>
       <Field label="제출 또는 평가 날짜"><input name="dueDate" type="date" defaultValue={item?.due_date || ""} required /></Field>
       <Field label="세부 내용 (선택)"><textarea name="details" defaultValue={item?.details || ""} maxLength="3000" rows="3" placeholder="준비물, 범위, 제출 방법 등을 적어 주세요." /></Field>
