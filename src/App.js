@@ -491,6 +491,7 @@ export default function App() {
         <button className="button button-primary full-button" disabled={saving || !loginSchool}>{saving ? "확인 중…" : "관리자 인증"} <ArrowRight size={16} /></button>
       </form>
       <button className="button button-light full-button" type="button" onClick={() => { setRegSchool(null); setRegSchoolQuery(""); setRegSchoolResults([]); setRegSchoolError(""); setModal({ type: "adminRegister" }); }}>등록 코드로 관리자 계정 만들기</button>
+      <button className="button button-light full-button" type="button" onClick={() => { setRegSchool(null); setRegSchoolQuery(""); setRegSchoolResults([]); setRegSchoolError(""); setIssuedCode(""); setModal({ type: "bootstrapCode" }); }}>사이트 운영자용 · 최초 일회용 코드 발급</button>
     </Modal>}
 
     {modal?.type === "adminRegister" && <Modal title="학교 관리자 등록" eyebrow="SCHOOL ADMIN SETUP" onClose={() => setModal(null)}>
