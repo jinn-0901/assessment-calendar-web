@@ -5,61 +5,11 @@ import {
   BookOpen, Pencil, Trash2, SlidersHorizontal, School, Layers3, ShieldCheck
 } from "lucide-react";
 
-const API_BASE_URL = (process.env.API_BASE_URL || "").replace(/\/$/, "");
-
-async function api(url, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    credentials: "include",
-    ...options,
-    headers: { ...(options.body ? { "Content-Type": "application/json" } : {}), ...(options.headers || {}) }
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "요청을 처리하지 못했어요.");
-  return data;
-}
-
-const todayISO = () => {
-  const now = new Date();
-  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
-};
-const prettyDate = (value) => {
-  if (!value) return "";
-  const d = new Date(value + "T12:00:00");
-  return new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", weekday: "short" }).format(d);
-};
-const dateParts = (value) => {
-  const d = new Date(value + "T12:00:00");
-  return { month: d.getMonth() + 1, day: d.getDate(), weekday: new Intl.DateTimeFormat("ko-KR", { weekday: "short" }).format(d) };
-};
-
-function Modal({ title, eyebrow, onClose, children, wide = false }) {
-  useEffect(() => {
-    const close = (event) => event.key === "Escape" && onClose();
-    window.addEventListener("keydown", close);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", close); document.body.style.overflow = ""; };
-  }, [onClose]);
-  return <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-    <section className={`modal-card ${wide ? "modal-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
-      <button className="icon-button modal-x" onClick={onClose} aria-label="닫기"><X size={19} /></button>
-      {eyebrow && <p className="eyebrow">{eyebrow}</p>}
-      <h2>{title}</h2>
-      {children}
-    </section>
-  </div>;
-}
-
-function Field({ label, children, className = "" }) {
-  return <label className={`field ${className}`}><span>{label}</span>{children}</label>;
-}
-
-function EmptyState({ title, description, icon: Icon = CalendarDays }) {
-  return <div className="empty-state">
-    <div className="empty-icon"><Icon size={24} /></div>
-    <h3>{title}</h3>
-    <p>{description}</p>
-  </div>;
-}
+import { api } from "./lib/api.js";
+import { todayISO, prettyDate, dateParts } from "./lib/date.js";
+import Modal from "./components/common/Modal.jsx";
+import Field from "./components/common/Field.jsx";
+import EmptyState from "./components/common/EmptyState.jsx";
 
 export default function App() {
   const [admin, setAdmin] = useState(null);
