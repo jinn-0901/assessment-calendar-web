@@ -62,7 +62,8 @@ function EmptyState({ title, description, icon: Icon = CalendarDays }) {
 }
 
 export default function App() {
-  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
+  const [requests, setRequests] = useState([]);
   const [schools, setSchools] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -73,7 +74,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
   const [modal, setModal] = useState(null);
-  const [authMode, setAuthMode] = useState("login");
   const [query, setQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [saving, setSaving] = useState(false);
@@ -133,8 +133,6 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const [me] = await Promise.all([api("/api/me")]);
-        setUser(me.user);
         const data = await api("/api/schools");
         setSchools(data.schools);
         if (data.schools.length) setSchoolId(String(data.schools[0].id));
@@ -159,29 +157,35 @@ export default function App() {
     if (!classOptions.some(c => String(c.id) === String(classId))) setClassId(String(classOptions[0].id));
   }, [grade, classes]);
 
-  function openAuth(mode = "login") { setAuthMode(mode); setModal({ type: "auth" }); }
   function openAssessment(item = null) {
-    if (!user) { openAuth("login"); notify("일정을 등록하려면 먼저 로그인해 주세요."); return; }
-    if (!schools.length) { setModal({ type: "setup", tab: "school" }); return; }
+    if (!schools.length) { notify("먼저 학교를 등록해 주세요.", "error"); return; }
     setModal({ type: "assessment", item });
   }
 
-  async function handleAuth(event) {
+  async function adminLogin(event) {
     event.preventDefault(); setSaving(true);
     const form = new FormData(event.currentTarget);
-    const payload = { email: form.get("email"), password: form.get("password") };
-    if (authMode === "register") payload.displayName = form.get("displayName");
     try {
-      const data = await api("/api/auth/" + authMode, { method: "POST", body: JSON.stringify(payload) });
-      setUser(data.user); setModal(null);
-      notify(authMode === "login" ? "로그인했어요." : "회원가입이 완료됐어요.");
+      const data = await api("/api/admin/login", { method: "POST", body: JSON.stringify({ schoolId: form.get("schoolId"), password: form.get("password") }) });
+      setAdmin(data.admin); setModal(null); notify("관리자 인증이 완료됐어요.");
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
   }
 
-  async function logout() {
-    try { await api("/api/auth/logout", { method: "POST" }); setUser(null); notify("로그아웃했어요."); }
+  async function openAdminQueue() {
+    if (!admin) { setModal({ type: "adminLogin" }); return; }
+    try { const data = await api("/api/admin/requests"); setRequests(data.requests); setModal({ type: "adminQueue" }); }
     catch (error) { notify(error.message, "error"); }
+  }
+
+  async function decideRequest(id, decision) {
+    try {
+      await api("/api/admin/requests/" + id + "/decision", { method: "POST", body: JSON.stringify({ decision }) });
+      const data = await api("/api/admin/requests");
+      setRequests(data.requests);
+      if (classId) await refreshAssessments(classId);
+      notify(decision === "approve" ? "승인했어요." : "반려했어요.");
+    } catch (error) { notify(error.message, "error"); }
   }
 
   async function saveAssessment(event) {
@@ -193,7 +197,7 @@ export default function App() {
       title: form.get("title"), dueDate: form.get("dueDate"), details: form.get("details")
     };
     try {
-      await api(id ? `/api/assessments/${id}` : "/api/assessments", {
+      const data = await api(id ? `/api/assessments/${id}` : "/api/assessments", {
         method: id ? "PUT" : "POST", body: JSON.stringify(payload)
       });
       const targetClass = String(payload.classId);
@@ -203,19 +207,12 @@ export default function App() {
       setClassId(targetClass);
       setModal(null);
       await refreshAssessments(targetClass);
-      notify(id ? "일정을 수정했어요." : "새 일정을 등록했어요.");
+      notify(data?.message || (id ? "수정 신청을 보냈어요. 관리자 승인 후 반영됩니다." : "등록 신청을 보냈어요. 관리자 승인 후 공개됩니다."));
     } catch (error) { notify(error.message, "error"); }
     finally { setSaving(false); }
   }
 
-  async function deleteAssessment(item) {
-    if (!window.confirm("이 수행평가 일정을 삭제할까요?")) return;
-    try {
-      await api("/api/assessments/" + item.id, { method: "DELETE" });
-      await refreshAssessments();
-      notify("일정을 삭제했어요.");
-    } catch (error) { notify(error.message, "error"); }
-  }
+  async function deleteAssessment(item) { notify("일정 삭제는 학교 관리자에게 요청해 주세요.", "error"); }
 
   async function submitSetup(event, kind) {
     event.preventDefault(); setSaving(true);
@@ -254,8 +251,8 @@ export default function App() {
         <span className="brand-name">모아<span>.</span><small>수행평가 일정</small></span>
       </a>
       <div className="top-actions">
-        <span className="account-name">{user ? <><span className="avatar">{user.displayName?.slice(0, 1) || "나"}</span>{user.displayName}님</> : "함께 쓰는 학급 플래너"}</span>
-        {user ? <button className="button button-light" onClick={logout}><LogOut size={16} /> 로그아웃</button> : <button className="button button-dark" onClick={() => openAuth("login")}><LogIn size={16} /> 로그인</button>}
+        <span className="account-name">{admin ? <><span className="avatar"><ShieldCheck size={14} /></span>{admin.schoolName} 관리자</> : "로그인 없이 일정 신청"}</span>
+        {admin ? <button className="button button-light" onClick={openAdminQueue}><Check size={16} /> 승인함</button> : <button className="button button-dark" onClick={() => setModal({ type: "adminLogin" })}><ShieldCheck size={16} /> 관리자</button>}
       </div>
     </header>
 
@@ -290,7 +287,7 @@ export default function App() {
           <Field label="학년"><span className="select-wrap"><GraduationCap size={17} /><select value={grade} onChange={e => setGrade(e.target.value)} disabled={!grades.length}><option value="">학년 선택</option>{grades.map(g => <option key={g} value={g}>{g}학년</option>)}</select><ChevronDown size={15} /></span></Field>
           <Field label="반"><span className="select-wrap"><Layers3 size={17} /><select value={classId} onChange={e => setClassId(e.target.value)} disabled={!classOptions.length}><option value="">반 선택</option>{classOptions.map(c => <option key={c.id} value={c.id}>{c.class_number}반</option>)}</select><ChevronDown size={15} /></span></Field>
         </div>
-        <button className="text-action" onClick={() => user ? setModal({ type: "setup", tab: "school" }) : openAuth("login")}>학교·학급·과목이 없나요? <span>직접 추가하기 <ArrowRight size={14} /></span></button>
+        <button className="text-action" onClick={() => setModal({ type: "setup", tab: "school" })}>학교·학급·과목이 없나요? <span>직접 추가하기 <ArrowRight size={14} /></span></button>
       </section>
 
       <section className="schedule-area">
@@ -313,31 +310,36 @@ export default function App() {
         {loading ? <div className="loading-state">일정을 불러오고 있어요…</div> : !classId ? <EmptyState icon={School} title="먼저 학교와 학급을 선택해 주세요" description="학급을 선택하면 등록된 수행평가 일정을 확인할 수 있어요." /> : filteredAssessments.length === 0 ? <EmptyState icon={BookOpen} title={query || subjectFilter !== "all" ? "검색 결과가 없어요" : "아직 등록된 일정이 없어요"} description={query || subjectFilter !== "all" ? "검색어나 과목 필터를 바꿔 보세요." : "첫 일정을 등록해 친구들과 공유해 보세요."} /> :
           <div className="assessment-list">{filteredAssessments.map(item => {
             const date = dateParts(item.due_date);
-            const own = user && String(user.id) === String(item.created_by);
+            const own = false;
             return <article className="assessment-item" key={item.id}>
               <div className="date-tile"><span>{date.month}월</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
               <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className="meta-avatar">{item.author?.slice(0, 1) || "?"}</span>{item.author} 등록</div></div>
-              {own && <div className="item-actions"><button className="icon-button" title="수정" onClick={() => openAssessment(item)}><Pencil size={16} /></button><button className="icon-button delete-action" title="삭제" onClick={() => deleteAssessment(item)}><Trash2 size={16} /></button></div>}
+              <div className="item-actions"><button className="icon-button" title="수정 신청" onClick={() => openAssessment(item)}><Pencil size={16} /></button></div>
             </article>;
           })}</div>
         }
       </section>
 
-      <section className="bottom-tip"><div className="tip-icon"><CircleHelp size={20} /></div><div><strong>일정이 잘못 등록되어 있나요?</strong><p>일정을 등록한 학생은 직접 수정하거나 삭제할 수 있어요. 다른 사람의 일정은 등록자에게 확인해 주세요.</p></div></section>
+      <section className="bottom-tip"><div className="tip-icon"><CircleHelp size={20} /></div><div><strong>일정이 잘못 등록되어 있나요?</strong><p>누구나 일정을 신청할 수 있고, 새 일정과 수정 사항은 해당 학교 관리자가 승인한 뒤 반영돼요.</p></div></section>
       <footer><a className="footer-brand" href="#" onClick={e => e.preventDefault()}>모아<span>.</span></a><span>함께 정리하고, 미리 준비하기.</span><span>학교생활을 조금 더 가볍게 ✳</span></footer>
     </main>
 
     {notice && <div className={`toast ${notice.type === "error" ? "toast-error" : ""}`} role="status">{notice.type === "error" ? <CircleHelp size={17} /> : <Check size={17} />}{notice.message}<button onClick={() => setNotice(null)} aria-label="알림 닫기"><X size={15} /></button></div>}
 
-    {modal?.type === "auth" && <Modal title={authMode === "login" ? "다시 만나서 반가워요!" : "모아에 가입하기"} eyebrow="WELCOME TO MOA" onClose={() => setModal(null)}>
-      <p className="modal-description">{authMode === "login" ? "로그인하고 우리 반의 일정을 함께 관리해요." : "계정을 만들고 수행평가 일정을 공유해 보세요."}</p>
-      <form className="modal-form" onSubmit={handleAuth}>
-        {authMode === "register" && <Field label="표시 이름"><input name="displayName" maxLength="80" required placeholder="친구들에게 보일 이름" autoComplete="nickname" /></Field>}
-        <Field label="이메일"><input name="email" type="email" required maxLength="254" placeholder="you@example.com" autoComplete="email" /></Field>
-        <Field label="비밀번호"><input name="password" type="password" required minLength="8" maxLength="128" placeholder="8자 이상" autoComplete={authMode === "login" ? "current-password" : "new-password"} /></Field>
-        <button className="button button-primary full-button" disabled={saving}>{saving ? "처리 중…" : authMode === "login" ? "로그인" : "회원가입"} <ArrowRight size={16} /></button>
+    {modal?.type === "adminLogin" && <Modal title="학교 관리자 인증" eyebrow="SCHOOL ADMIN" onClose={() => setModal(null)}>
+      <p className="modal-description">관리자로 등록된 학교를 선택하고 관리자 비밀번호를 입력해 주세요.</p>
+      <form className="modal-form" onSubmit={adminLogin}>
+        <Field label="학교"><select name="schoolId" required defaultValue=""><option value="">학교 선택</option>{schools.map(s => <option key={s.id} value={s.id}>{s.name}{s.region ? " · " + s.region : ""}</option>)}</select></Field>
+        <Field label="관리자 비밀번호"><input name="password" type="password" required minLength="12" autoComplete="current-password" /></Field>
+        <button className="button button-primary full-button" disabled={saving}>{saving ? "확인 중…" : "관리자 인증"} <ArrowRight size={16} /></button>
       </form>
-      <p className="modal-switch">{authMode === "login" ? "아직 계정이 없나요?" : "이미 계정이 있나요?"}<button onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}>{authMode === "login" ? "회원가입" : "로그인"}</button></p>
+    </Modal>}
+
+    {modal?.type === "adminQueue" && <Modal title="일정 승인함" eyebrow={admin?.schoolName || "SCHOOL ADMIN"} onClose={() => setModal(null)} wide>
+      <p className="modal-description">새 일정과 수정 신청을 확인한 뒤 승인하거나 반려해 주세요.</p>
+      {!requests.length ? <EmptyState title="대기 중인 신청이 없어요" description="새 신청이 들어오면 여기에 표시돼요." /> : <div className="assessment-list">{requests.map(r => <article className="assessment-item" key={r.id}>
+        <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{r.action === "create" ? "새 일정" : "수정 신청"}</span><span className="date-tag">{new Date(r.created_at).toLocaleString("ko-KR")}</span></div><h3>{r.payload.title}</h3><p className="item-details">{r.payload.dueDate} · {r.payload.details || "세부 내용 없음"}</p><div className="item-actions"><button className="button button-primary" onClick={() => decideRequest(r.id,"approve")}>승인</button><button className="button button-light" onClick={() => decideRequest(r.id,"reject")}>반려</button></div></div>
+      </article>)}</div>}
     </Modal>}
 
     {modal?.type === "assessment" && <AssessmentModal
