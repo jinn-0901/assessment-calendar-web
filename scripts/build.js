@@ -3,9 +3,14 @@ const path = require("node:path");
 const esbuild = require("esbuild");
 
 const root = path.resolve(__dirname, "..");
-const assetsDir = path.join(root, "dist", "assets");
+const distDir = path.join(root, "dist");
+const assetsDir = path.join(distDir, "assets");
 
 fs.mkdirSync(assetsDir, { recursive: true });
+fs.copyFileSync(
+  path.join(root, "client", "index.html"),
+  path.join(distDir, "index.html")
+);
 
 esbuild.build({
   entryPoints: [path.join(root, "client", "src", "main.jsx")],
