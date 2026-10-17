@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownRight, ArrowRight, CalendarDays, Check, ChevronDown, CircleHelp,
-  Clock3, GraduationCap, LogIn, LogOut, Plus, Search, Sparkles, X,
-  BookOpen, Pencil, Trash2, SlidersHorizontal, School, Layers3
+  Clock3, GraduationCap, Plus, Search, Sparkles, X,
+  BookOpen, Pencil, Trash2, SlidersHorizontal, School, Layers3, ShieldCheck
 } from "lucide-react";
 
 const API_BASE_URL = (process.env.API_BASE_URL || "").replace(/\/$/, "");
