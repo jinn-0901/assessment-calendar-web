@@ -138,7 +138,7 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       </div>
       <Field label="과목"><input name="subjectName" value={subjectName || (availableSubjects.find(s => String(s.id) === chosenSubject)?.name || "")} onChange={e => { setSubjectName(e.target.value); setChosenSubject(""); }} required maxLength="100" placeholder="예: 국어, 수학, 영어" /></Field>
       <Field label="수행평가 제목"><input name="title" defaultValue={item?.title || ""} maxLength="180" required placeholder="예: 수학 탐구 보고서" /></Field>
-      <Field label="제출 또는 평가 날짜"><input name="dueDate" type="date" defaultValue={item?.due_date || ""} required /></Field>
+      <div className="form-row"><Field label="제출 또는 평가 날짜"><input name="dueDate" type="date" defaultValue={item?.due_date || ""} required /></Field><Field label="시간 (선택)"><input name="dueTime" type="time" defaultValue={item?.due_time ? String(item.due_time).slice(0,5) : ""} /></Field></div>
       <Field label="세부 내용 (선택)"><textarea name="details" defaultValue={item?.details || ""} maxLength="3000" rows="3" placeholder="준비물, 범위, 제출 방법 등을 적어 주세요." /></Field>
       {error && <p className="inline-error">{error}</p>}
       <button className="button button-primary full-button" disabled={saving}>{saving ? "저장 중…" : "일정 저장하기"} <ArrowRight size={16} /></button>
