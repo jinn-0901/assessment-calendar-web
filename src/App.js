@@ -45,6 +45,14 @@ export default function App() {
   const [mainView, setMainView] = useState("assessments");
   const [academicEvents, setAcademicEvents] = useState([]);
   const [academicLoading, setAcademicLoading] = useState(false);
+  const visibleAcademicEvents = useMemo(() => academicEvents.filter(event => {
+    const hasGradeFlags = event.grade1 || event.grade2 || event.grade3;
+    if (!hasGradeFlags) return true;
+    if (String(grade) === "1") return event.grade1;
+    if (String(grade) === "2") return event.grade2;
+    if (String(grade) === "3") return event.grade3;
+    return true;
+  }), [academicEvents, grade]);
   const [timetableDate, setTimetableDate] = useState(() => todayISO());
   const [timetableRows, setTimetableRows] = useState([]);
   const [mealMonth, setMealMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -654,10 +662,10 @@ export default function App() {
               {["일","월","화","수","목","금","토"].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}
               {calendarCells.map(cell => <div key={cell.iso} className={"calendar-day" + (!cell.inMonth ? " outside-month" : "") + (cell.iso === todayISO() ? " today" : "")}>
                 <span className="calendar-day-number">{cell.date.getDate()}</span>
-                <div className="calendar-day-items">{cell.items.map(item => { const from = item.start_date || item.due_date || ""; const to = item.end_date || item.due_date || from; const continuesBefore = from < cell.iso; const continuesAfter = to > cell.iso; return <button type="button" className={"calendar-event"+(continuesBefore ? " event-continues-before" : "")+(continuesAfter ? " event-continues-after" : "")} key={"assessment-"+item.id} title={item.title + " · " + item.subject_name + " · " + prettyDate(from) + (to !== from ? " ~ " + prettyDate(to) : "")} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{continuesBefore ? "↳ " : ""}{item.title}{continuesAfter ? " →" : ""}</span></button>; })}{academicEvents.filter(event => event.date === cell.iso.replace(/-/g, "")).map((event,index) => <div className="calendar-event" key={"academic-"+event.date+"-"+event.name+"-"+index} style={{background:"#e8f7ee",color:"#17663a",cursor:"default"}} title={event.details || event.name}><b>학사일정</b><span>{event.name}</span></div>)}</div>
+                <div className="calendar-day-items">{cell.items.map(item => { const from = item.start_date || item.due_date || ""; const to = item.end_date || item.due_date || from; const continuesBefore = from < cell.iso; const continuesAfter = to > cell.iso; return <button type="button" className={"calendar-event"+(continuesBefore ? " event-continues-before" : "")+(continuesAfter ? " event-continues-after" : "")} key={"assessment-"+item.id} title={item.title + " · " + item.subject_name + " · " + prettyDate(from) + (to !== from ? " ~ " + prettyDate(to) : "")} onClick={() => openAssessment(item)}><b>{item.subject_name}</b><span>{continuesBefore ? "↳ " : ""}{item.title}{continuesAfter ? " →" : ""}</span></button>; })}{visibleAcademicEvents.filter(event => event.date === cell.iso.replace(/-/g, "")).map((event,index) => <div className="calendar-event" key={"academic-"+event.date+"-"+event.name+"-"+index} style={{background:"#e8f7ee",color:"#17663a",cursor:"default"}} title={event.details || event.name}><b>학사일정</b><span>{event.name}</span></div>)}</div>
               </div>)}
             </div>
-          </div> : <div className="assessment-list">{(showAcademicCards ? academicEvents : []).map((event,index) => <article className="assessment-item academic-card" key={"academic-card-"+event.date+"-"+event.name+"-"+index}><div className="date-tile"><span>{Number(event.date.slice(4,6))}월</span><strong>{Number(event.date.slice(6,8))}</strong><small>학사</small></div><div className="assessment-content"><div className="item-labels"><span className="subject-tag" style={{background:"#e8f7ee",color:"#17663a"}}>학사일정</span></div><h3>{event.name}</h3>{event.details && <p className="item-details">{event.details}</p>}</div></article>)}{filteredAssessments.map(item => {
+          </div> : <div className="assessment-list">{(showAcademicCards ? visibleAcademicEvents : []).map((event,index) => <article className="assessment-item academic-card" key={"academic-card-"+event.date+"-"+event.name+"-"+index}><div className="date-tile"><span>{Number(event.date.slice(4,6))}월</span><strong>{Number(event.date.slice(6,8))}</strong><small>학사</small></div><div className="assessment-content"><div className="item-labels"><span className="subject-tag" style={{background:"#e8f7ee",color:"#17663a"}}>학사일정</span></div><h3>{event.name}</h3>{event.details && <p className="item-details">{event.details}</p>}</div></article>)}{filteredAssessments.map(item => {
             const date = dateParts(item.due_date);
             return <article className="assessment-item" key={item.id}>
               <div className="date-tile"><span>{date.month}월</span><strong>{date.day}</strong><small>{date.weekday}</small></div>
