@@ -90,7 +90,7 @@ export default function App() {
   const filteredAssessments = useMemo(() => assessments.filter(item => {
     const matchesQuery = (item.title + " " + item.subject_name + " " + (item.details || "")).toLowerCase().includes(query.toLowerCase());
     return matchesQuery && (subjectFilter === "all" || item.subject_name === subjectFilter);
-  }), [assessments, query, subjectFilter]);
+  }).sort((a, b) => (a.start_date || a.due_date || "").localeCompare(b.start_date || b.due_date || "") || (a.start_time || "99:99").localeCompare(b.start_time || "99:99") || String(a.title || "").localeCompare(String(b.title || ""), "ko")), [assessments, query, subjectFilter]);
   const assessmentStartDate = item => item.start_date || item.due_date || "";
   const assessmentStartTime = item => item.start_time || item.end_time || "99:99";
   const compareAssessmentStart = (a, b) => assessmentStartDate(a).localeCompare(assessmentStartDate(b)) || assessmentStartTime(a).localeCompare(assessmentStartTime(b)) || String(a.title || "").localeCompare(String(b.title || ""), "ko");
@@ -523,9 +523,9 @@ export default function App() {
       </section>
 
       <nav className="main-view-tabs" aria-label="학교 일정 메뉴">
-        <button type="button" className={mainView === "assessments" ? "selected" : ""} onClick={() => setMainView("assessments")}><CalendarDays size={16}/> 수행평가</button>
-        <button type="button" className={mainView === "academic" ? "selected" : ""} onClick={() => setMainView("academic")}><GraduationCap size={16}/> 학사일정</button>
-        <button type="button" className={mainView === "timetable" ? "selected" : ""} onClick={() => setMainView("timetable")}><BookOpen size={16}/> 반별 시간표</button>
+        <button type="button" className={mainView === "assessments" ? "selected" : ""} onClick={() => setMainView("assessments")}><CalendarDays size={16}/> 일정 달력</button>
+        <button type="button" className={mainView === "timetable" ? "selected" : ""} onClick={() => setMainView("timetable")}><BookOpen size={16}/> 주간 시간표</button>
+        <button type="button" className={mainView === "meals" ? "selected" : ""} onClick={() => setMainView("meals")}><GraduationCap size={16}/> 급식 달력</button>
       </nav>
 
       {mainView === "academic" && <section className="schedule-area">
