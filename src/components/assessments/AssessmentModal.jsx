@@ -79,7 +79,6 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       setNeisGrades(foundGrades);
       const nextGrade = String(item?.grade || chosenGrade || "");
       setChosenGrade(foundGrades.includes(nextGrade) ? nextGrade : "");
-      setChosenClass("");
       setChosenSubject(String(item?.subject_id || ""));
       setSubjectName(item?.subject_name || "");
     }).catch(e => { if (active) setError(e.message); })
@@ -90,7 +89,6 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
   useEffect(() => {
     let active = true;
     setNeisClasses([]);
-    setChosenClass("");
     if (!chosenSchool || !chosenGrade) return () => { active = false; };
     setNeisLoading(true);
     api("/api/neis/classes?schoolId=" + encodeURIComponent(chosenSchool) + "&grade=" + encodeURIComponent(chosenGrade))
@@ -117,7 +115,25 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
 
   return <Modal title={item ? "수행평가 수정하기" : "새 일정 등록하기"} eyebrow="ASSESSMENT DETAILS" onClose={onClose}>
     <p className="modal-description">학급 친구들이 확인할 수 있도록 내용을 정확히 입력해 주세요.</p>
-    <form className="modal-form" onSubmit={event => { setError(""); onSubmit(event); }}>
+    <form className="modal-form" onSubmit={event => {
+      setError("");
+      const form = event.currentTarget;
+      const startDate = form.elements.startDate.value;
+      const endDate = form.elements.endDate.value;
+      const startTime = form.elements.startTime.value;
+      const endTime = form.elements.endTime.value;
+      if (endDate < startDate) {
+        event.preventDefault();
+        setError("종료 날짜는 시작 날짜보다 빠를 수 없어요.");
+        return;
+      }
+      if (startDate === endDate && startTime && endTime && endTime < startTime) {
+        event.preventDefault();
+        setError("종료 시간은 시작 시간보다 빠를 수 없어요.");
+        return;
+      }
+      onSubmit(event);
+    }}>
       <input type="hidden" name="id" value={item?.id || ""} />
       <Field label="학교">
         <div className="school-search-row">
