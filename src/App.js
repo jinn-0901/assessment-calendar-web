@@ -504,7 +504,7 @@ export default function App() {
               <div className="assessment-content"><div className="item-labels"><span className="subject-tag">{item.subject_name}</span><span className={item.due_date < todayISO() ? "past-tag" : "date-tag"}>{item.due_date < todayISO() ? "지난 일정" : prettyDate(item.due_date)}</span><span className="date-tag">{item.author === "학교 관리자" ? "관리자 등록" : "학생 등록"}</span></div><h3>{item.title}</h3>{item.details && <p className="item-details">{item.details}</p>}<div className="item-meta"><span className="meta-avatar">{item.author?.slice(0, 1) || "?"}</span>{item.author || "학생"} 등록</div></div>
               <div className="item-actions"><button className="icon-button" title={admin ? "일정 수정" : "수정 신청"} onClick={() => openAssessment(item)}><Pencil size={16} /></button></div>
             </article>;
-          })}</div>}
+          })}</div>
         }
       </section>
 
