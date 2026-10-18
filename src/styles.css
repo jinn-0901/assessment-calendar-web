@@ -418,3 +418,25 @@
   border-radius: 16px;
   overflow: hidden;
 }
+
+
+/* Calendar overlap and dark-surface boundary fixes (Oct 2026). */
+/* Keep NEIS events below all continuation bars in the same day cell. */
+.calendar-day-items:has(.assessment-event-row .event-continuation) .academic-event-row,
+.calendar-day-items:has(.assessment-event-row .event-continues-after) .academic-event-row {
+  margin-top: 72px !important;
+}
+
+/* The calendar itself has a surface; the page gutters should remain the page surface. */
+:root[data-theme="dark"] .schedule-area {
+  background-color: transparent !important;
+}
+:root[data-theme="dark"] .calendar-view,
+:root[data-theme="dark"] .calendar-grid {
+  background-color: #202231 !important;
+}
+:root[data-theme="dark"] .calendar-day,
+:root[data-theme="dark"] .calendar-day.outside-month,
+:root[data-theme="dark"] .calendar-day.today {
+  background-color: #202231 !important;
+}
