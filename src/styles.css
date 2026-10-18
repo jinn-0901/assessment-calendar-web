@@ -347,3 +347,45 @@
 :root[data-theme="dark"] .academic-card .date-tile { background:#302b50!important; color:#e2ddff!important; }
 :root[data-theme="dark"] .item-time { color:#c7cce0!important; }
 
+
+
+/* Calendar dark mode: consistent surfaces while preserving cell borders. */
+:root[data-theme="dark"] .calendar-view,
+:root[data-theme="dark"] .calendar-grid,
+:root[data-theme="dark"] .calendar-panel {
+  background-color: #202231 !important;
+}
+:root[data-theme="dark"] .calendar-day,
+:root[data-theme="dark"] .calendar-day.outside-month,
+:root[data-theme="dark"] .calendar-day.today {
+  background-color: #202231 !important;
+}
+:root[data-theme="dark"] .calendar-day {
+  border-color: #343747 !important;
+}
+
+/* Reserve a separate vertical row for academic events beneath assessment bars. */
+.calendar-day-items {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.calendar-event-row {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+.calendar-event-row.academic-event-row {
+  z-index: 3;
+  flex: 0 0 auto;
+  clear: both;
+}
+.calendar-event-row.academic-event-row .calendar-event {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
