@@ -440,3 +440,41 @@
 :root[data-theme="dark"] .calendar-day.today {
   background-color: #202231 !important;
 }
+
+
+/* Calendar layout correction: continuation bars occupy one compact, consistent row. */
+.calendar-day-items:has(.assessment-event-row .event-continuation) .academic-event-row,
+.calendar-day-items:has(.assessment-event-row .event-continues-after) .academic-event-row {
+  margin-top: 0 !important;
+}
+.calendar-event-row.assessment-event-row {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+.calendar-event-row.assessment-event-row .calendar-event.event-continuation {
+  display: block;
+  width: 100%;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+}
+.calendar-event-row.assessment-event-row .calendar-event.event-continues-after:not(.event-continuation) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/* Keep the view selector on the same page surface instead of a clipped-looking panel. */
+:root[data-theme="dark"] .list-toolbar {
+  background: #171923 !important;
+  border-color: transparent !important;
+}
+:root[data-theme="dark"] .calendar-view {
+  background: #202231 !important;
+  border: 1px solid #393c50 !important;
+}
+:root[data-theme="dark"] .calendar-heading,
+:root[data-theme="dark"] .calendar-grid {
+  background: #202231 !important;
+}
