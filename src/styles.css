@@ -389,3 +389,32 @@
   min-width: 0;
   box-sizing: border-box;
 }
+
+
+/* Fix overlapping NEIS academic events under multi-day assessment bars. */
+.calendar-day-items:has(.assessment-event-row .event-continuation) .academic-event-row,
+.calendar-day-items:has(.assessment-event-row .event-continues-after) .academic-event-row {
+  margin-top: 40px;
+  position: relative;
+  z-index: 4;
+}
+/* Keep the calendar and the surrounding page on one continuous dark surface. */
+:root[data-theme="dark"] .schedule-area,
+:root[data-theme="dark"] .calendar-view,
+:root[data-theme="dark"] .calendar-grid {
+  background-color: #202231 !important;
+}
+:root[data-theme="dark"] .calendar-grid {
+  border-color: #343747 !important;
+  overflow: hidden;
+  border-radius: 0 0 16px 16px;
+}
+:root[data-theme="dark"] .calendar-day,
+:root[data-theme="dark"] .calendar-day.outside-month,
+:root[data-theme="dark"] .calendar-day.today {
+  background-color: #202231 !important;
+}
+:root[data-theme="dark"] .calendar-view {
+  border-radius: 16px;
+  overflow: hidden;
+}
