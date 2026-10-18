@@ -478,3 +478,28 @@
 :root[data-theme="dark"] .calendar-grid {
   background: #202231 !important;
 }
+
+/* Oct 19: keep multi-day assessment segments the same height so they read as one bar. */
+.calendar-event-row.assessment-event-row .calendar-event.event-continuation {
+  height: 50px !important;
+  min-height: 50px !important;
+  max-height: 50px !important;
+}
+.calendar-event-row.assessment-event-row .calendar-event.event-continues-after:not(.event-continuation) {
+  min-height: 50px;
+}
+/* The view selector toolbar should blend into the calendar section in dark mode. */
+:root[data-theme="dark"] .list-toolbar {
+  background-color: #202231 !important;
+  border-color: #393c50 !important;
+  border-radius: 14px;
+  padding: 0;
+}
+:root[data-theme="dark"] .schedule-area {
+  background-color: transparent !important;
+}
+:root[data-theme="dark"] .calendar-view,
+:root[data-theme="dark"] .calendar-grid,
+:root[data-theme="dark"] .calendar-heading {
+  background-color: #202231 !important;
+}
