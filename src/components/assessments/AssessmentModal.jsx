@@ -77,10 +77,11 @@ export default function AssessmentModal({ item, schools, classes, subjects, defa
       setAvailableSubjects(ss);
       const foundGrades = (data.grades || []).map(String);
       setNeisGrades(foundGrades);
-      const nextGrade = String(item?.grade || chosenGrade || "");
+      const sameSchool = !item || String(item.school_id) === String(chosenSchool);
+      const nextGrade = sameSchool ? String(item?.grade || chosenGrade || "") : String(chosenGrade || "");
       setChosenGrade(foundGrades.includes(nextGrade) ? nextGrade : "");
-      setChosenSubject(String(item?.subject_id || ""));
-      setSubjectName(item?.subject_name || "");
+      setChosenSubject(sameSchool ? String(item?.subject_id || "") : "");
+      setSubjectName(sameSchool ? (item?.subject_name || "") : "");
     }).catch(e => { if (active) setError(e.message); })
       .finally(() => { if (active) setNeisLoading(false); });
     return () => { active = false; };
