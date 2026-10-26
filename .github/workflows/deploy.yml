@@ -32,7 +32,7 @@ jobs:
           CI: false
           REACT_APP_API_BASE_URL: https://assessment-calendar-server.onrender.com
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: build
 
