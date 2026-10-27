@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownRight, ArrowRight, CalendarDays, Check, ChevronDown, CircleHelp,
   Clock3, GraduationCap, Plus, Search, Sparkles, X,
@@ -54,6 +54,7 @@ export default function App() {
   const [classId, setClassId] = useState("");
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
+  const noticeTimer = useRef(null);
   const [modal, setModal] = useState(null);
   const [query, setQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
@@ -129,6 +130,17 @@ export default function App() {
   const upcomingCount = upcomingAssessments.length;
   const nextAssessment = upcomingAssessments[0];
   const mealCalendarCells = useMemo(() => {
+    const mealsByDate = new Map();
+    const mealOrder = new Map([["조식", 0], ["중식", 1], ["석식", 2]]);
+    mealRows.forEach(meal => {
+      const date = String(meal.date || "");
+      if (!mealsByDate.has(date)) mealsByDate.set(date, []);
+      mealsByDate.get(date).push(meal);
+    });
+    mealsByDate.forEach(meals => meals.sort((a, b) =>
+      (mealOrder.get(a.mealType) ?? 99) - (mealOrder.get(b.mealType) ?? 99)
+    ));
+
     const first = new Date(mealMonth.getFullYear(), mealMonth.getMonth(), 1);
     const start = new Date(first);
     start.setDate(first.getDate() - first.getDay());
@@ -137,7 +149,7 @@ export default function App() {
       date.setDate(start.getDate() + i);
       const iso = [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-");
       const neisDate = iso.replace(/-/g, "");
-      return { date, iso, inMonth: date.getMonth() === mealMonth.getMonth(), meals: mealRows.filter(meal => meal.date === neisDate).sort((a,b) => ["조식","중식","석식"].indexOf(a.mealType)-["조식","중식","석식"].indexOf(b.mealType)) };
+      return { date, iso, inMonth: date.getMonth() === mealMonth.getMonth(), meals: mealsByDate.get(neisDate) || [] };
     });
   }, [mealMonth, mealRows]);
 
@@ -149,11 +161,27 @@ export default function App() {
       const date = new Date(start);
       date.setDate(start.getDate() + i);
       const iso = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-      return { date, iso, inMonth: date.getMonth() === calendarMonth.getMonth(), items: filteredAssessments.filter(item => {
-        const from = item.start_date || item.due_date || "";
-        const to = item.end_date || item.due_date || from;
-        return from && from <= iso && iso <= to;
-      }) };
+      return { date, iso, inMonth: date.getMonth() === calendarMonth.getMonth(), items: [] };
+    });
+    const cellsByDate = new Map(cells.map(cell => [cell.iso, cell]));
+    const visibleStart = cells[0].iso;
+    const visibleEnd = cells[cells.length - 1].iso;
+    const formatDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+
+    filteredAssessments.forEach(item => {
+      const from = item.start_date || item.due_date || "";
+      const to = item.end_date || item.due_date || from;
+      if (!from || to < visibleStart || from > visibleEnd) return;
+
+      const clippedFrom = from < visibleStart ? visibleStart : from;
+      const clippedTo = to > visibleEnd ? visibleEnd : to;
+      const date = new Date(`${clippedFrom}T12:00:00`);
+      const lastDate = new Date(`${clippedTo}T12:00:00`);
+      while (date <= lastDate) {
+        const cell = cellsByDate.get(formatDate(date));
+        if (cell) cell.items.push(item);
+        date.setDate(date.getDate() + 1);
+      }
     });
 
     // Assign each assessment a stable vertical lane for the whole week.
@@ -197,8 +225,11 @@ export default function App() {
 
   const notify = (message, type = "success") => {
     setNotice({ message, type });
-    window.setTimeout(() => setNotice(null), 4200);
+    window.clearTimeout(noticeTimer.current);
+    noticeTimer.current = window.setTimeout(() => setNotice(null), 4200);
   };
+
+  useEffect(() => () => window.clearTimeout(noticeTimer.current), []);
 
 
   useEffect(() => {
