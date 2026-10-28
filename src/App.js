@@ -634,21 +634,9 @@ export default function App() {
     <main className="main-content">
       <section className="hero">
         <div className="hero-copy">
-          <div className="hero-kicker"><Sparkles size={14} /> LESS STRESS, MORE FOCUS</div>
-          <h1>수행평가 준비,<br /><span>이제 모아</span>서 관리해요.</h1>
-          <p>흩어져 있던 일정을 한곳에. 미리 확인하고 여유 있게 준비해 보세요.</p>
-          <button className="button button-primary hero-button" onClick={() => openAssessment()}><Plus size={17} /> 수행평가 일정 등록 <ArrowRight size={16} /></button>
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="art-orbit orbit-one"></div><div className="art-orbit orbit-two"></div>
-          <div className="art-card">
-            <div className="art-card-top"><span className="art-dot"></span><span>MY SCHOOL PLAN</span><Layers3 size={16} /></div>
-            <div className="art-date">10<span>월</span></div>
-            <div className="art-line long"></div><div className="art-line medium"></div>
-            <div className="art-task"><span className="task-mark"></span><div><b>수학 탐구 보고서</b><small>내일까지 준비하기</small></div><Check size={17} /></div>
-          </div>
-          <span className="floating-bubble bubble-a"><CalendarDays size={18} /></span>
-          <span className="floating-bubble bubble-b"><Sparkles size={17} /></span>
+          <h1>수행평가 일정, <span>모아</span>서 한눈에.</h1>
+          <p>학교와 학급을 선택하고 일정을 확인하세요.</p>
+          <button className="button button-primary hero-button" onClick={() => openAssessment()}><Plus size={17} /> 일정 등록</button>
         </div>
       </section>
 
@@ -721,10 +709,10 @@ export default function App() {
           <button className="button button-primary" onClick={() => openAssessment()}><Plus size={17} /> 일정 등록</button>
         </div>
 
-        <div className="stats-row">
-          <div className="stat-card"><div className="stat-icon purple"><CalendarDays size={18} /></div><div><span>등록된 일정</span><strong>{assessments.length}<small>개</small></strong></div></div>
-          <div className="stat-card"><div className="stat-icon green"><Clock3 size={18} /></div><div><span>앞으로 남은 일정</span><strong>{upcomingCount}<small>개</small></strong></div></div>
-          <div className="stat-card next-stat"><div className="stat-icon orange"><ArrowDownRight size={18} /></div><div><span>가장 가까운 수행평가</span><strong className="next-title">{nextAssessment ? nextAssessment.title : "예정된 일정 없음"}</strong><small>{nextAssessment ? prettyDate(assessmentStartDate(nextAssessment)) + (nextAssessment.start_time ? " · " + String(nextAssessment.start_time).slice(0,5) : " · 시간 미정") : "새 일정을 등록해 보세요"}</small></div></div>
+        <div className="compact-summary">
+          <span>전체 {assessments.length}개</span>
+          <span>남은 일정 {upcomingCount}개</span>
+          <span className="compact-summary-next">다음: {nextAssessment ? nextAssessment.title + " · " + prettyDate(assessmentStartDate(nextAssessment)) : "예정된 일정 없음"}</span>
         </div>
 
         <div className="list-toolbar">
