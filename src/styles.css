@@ -537,3 +537,45 @@
 :root[data-theme="dark"] .list-toolbar > * {
   min-width: 0;
 }
+
+
+/* Minimal home layout: reduce decorative space and card clutter. */
+.hero { min-height: 0; padding: 30px 4px 24px; }
+.hero-kicker, .hero-art { display: none !important; }
+.hero-copy { max-width: 100%; }
+.hero h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.25; letter-spacing: -0.055em; }
+.hero-copy > p { margin: 10px 0 16px; font-size: 13px; }
+.hero-button { padding: 10px 14px; }
+.selection-panel { padding: 20px; border-radius: 14px; box-shadow: none; }
+.section-kicker, .private-note { display: none; }
+.panel-title-row h2 { font-size: 17px; }
+.select-grid { gap: 11px; margin-top: 16px; }
+.main-view-tabs { margin: 14px 0 4px; padding: 3px; border-radius: 11px; box-shadow: none; }
+.main-view-tabs button { padding: 10px 8px; border-radius: 8px; }
+.schedule-area { padding: 28px 0 16px; }
+.schedule-header h2 { font-size: 20px; }
+.schedule-header > div > p { margin-top: 5px; }
+.compact-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 16px; margin: 17px 0 4px; padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.compact-summary-next { min-width: 0; overflow-wrap: anywhere; }
+.list-toolbar { flex-wrap: wrap; gap: 8px; margin: 18px 0 10px; }
+.search-box { flex: 1 1 200px; }
+.view-switch { border-radius: 10px; }
+.assessment-list { gap: 8px; }
+.assessment-item { gap: 12px; padding: 13px; border-radius: 12px; box-shadow: none; }
+.assessment-item:hover { box-shadow: none; }
+.bottom-tip { display: none; }
+@media (max-width: 640px) {
+  .main-content { width: min(100% - 28px, 1030px); }
+  .hero { padding: 24px 0 20px; }
+  .selection-panel { padding: 16px; }
+  .select-grid { grid-template-columns: 1fr; gap: 12px; }
+  .main-view-tabs button { font-size: 12px; }
+  .schedule-header { align-items: flex-start; gap: 10px; }
+  .schedule-header h2 { font-size: 18px; }
+  .compact-summary { gap: 6px 12px; }
+  .compact-summary-next { flex-basis: 100%; }
+  .list-toolbar { display: flex; }
+  .filter-box { flex: 1 1 110px; justify-content: space-between; }
+  .view-switch { width: 100%; justify-content: stretch; }
+  .view-switch button { flex: 1; justify-content: center; }
+}
