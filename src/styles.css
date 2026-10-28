@@ -579,3 +579,38 @@
   .view-switch { width: 100%; justify-content: stretch; }
   .view-switch button { flex: 1; justify-content: center; }
 }
+
+
+/* Improve readability of secondary text and inline controls in dark mode. */
+:root[data-theme="dark"] label,
+:root[data-theme="dark"] label[style],
+:root[data-theme="dark"] .field,
+:root[data-theme="dark"] .field label,
+:root[data-theme="dark"] .academic-event,
+:root[data-theme="dark"] .academic-event p,
+:root[data-theme="dark"] .meal-calendar-item,
+:root[data-theme="dark"] .meal-calendar-item p,
+:root[data-theme="dark"] .meal-calendar-item small,
+:root[data-theme="dark"] .meal-horizontal p,
+:root[data-theme="dark"] .meal-horizontal small,
+:root[data-theme="dark"] .timetable-period small,
+:root[data-theme="dark"] .timetable-school-grid td small,
+:root[data-theme="dark"] .school-search-hint,
+:root[data-theme="dark"] .selected-school-note {
+  color: #d0d5e5 !important;
+}
+
+/* The meal-detail dialog uses inline light-theme text colors, so override them here. */
+:root[data-theme="dark"] [role="dialog"] > section {
+  background: #202231 !important;
+  color: #f1f2f8 !important;
+  border: 1px solid #41455a;
+}
+:root[data-theme="dark"] [role="dialog"] > section h2,
+:root[data-theme="dark"] [role="dialog"] > section p,
+:root[data-theme="dark"] [role="dialog"] > section small {
+  color: #dce1ef !important;
+}
+:root[data-theme="dark"] input[type="checkbox"] {
+  accent-color: #9b91ff;
+}
